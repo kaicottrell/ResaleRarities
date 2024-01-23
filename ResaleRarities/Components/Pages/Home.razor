@@ -1,0 +1,24 @@
+﻿<!-- Index.razor -->
+@page "/"
+@using ApplicationCore.Models
+@using ApplicationCore.Interfaces
+@using Microsoft.AspNetCore.Components
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Index</PageTitle>
+
+
+<div class="container">
+    @foreach (var applicationUser in TemplateList)
+    {
+        <div class="row">
+            <div class="col-12 col-md-6 justify-content-start">
+                Create New <i class="bi bi-plus-circle"></i>
+            </div>
+        </div>
+    }
+
+
+</div>
+
+
