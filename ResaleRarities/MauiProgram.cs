@@ -3,6 +3,9 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using ApplicationCore.Interfaces;
 using Infrastructure.Data;
+using ResaleRarities.Authentication;
+using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace ResaleRarities
 {
@@ -31,11 +34,15 @@ namespace ResaleRarities
                     maxRetryDelay: TimeSpan.FromSeconds(10),
                     errorNumbersToAdd: null)));
 
+            builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+            builder.Services.AddAuthorizationCore();
+            builder.Services.AddHttpClient();
+            builder.Services.AddMauiBlazorWebView();
             builder.Services.AddScoped<IUnitofWork, UnitofWork>();
-#if DEBUG
+            #if DEBUG
             builder.Services.AddBlazorWebViewDeveloperTools();
             builder.Logging.AddDebug();
-#endif
+            #endif
 
             return builder.Build();
         }
