@@ -3,6 +3,7 @@
 @using System.Text.Json
 @using System.Text;
 @using ApplicationCore.Models.NonDbModels
+@using ApplicationCore.Models
 @using System.Net.Http.Json
 @inject NavigationManager NavManager
 
@@ -14,8 +15,12 @@
         <div class="card-header">Register Account</div>
         <div class="card-body">
             <div class="form-group">
-                <label>Fullname</label>
-                <InputText class="form-control" @bind-Value="RegistrationModel.Name"></InputText>
+                <label>First Name</label>
+                <InputText class="form-control" @bind-Value="RegistrationModel.FirstName"></InputText>
+            </div>
+            <div class="form-group">
+                <label>Last Name</label>
+                <InputText class="form-control" @bind-Value="RegistrationModel.LastName"></InputText>
             </div>
             <div class="form-group mt-2">
                 <label>Email Address</label>
@@ -40,7 +45,14 @@
 
     private async Task HandleRegister()
     {
-        var result = await httpClient.PostAsJsonAsync("https://j40f1735-7218.usw2.devtunnels.ms/Account/register", RegistrationModel);
+        ApplicationUser au = new ApplicationUser
+        {
+            FirstName = RegistrationModel.FirstName,
+            LastName = RegistrationModel.LastName,
+            Email = RegistrationModel.Email,
+            Password = RegistrationModel.Password
+        };
+        var result = await httpClient.PostAsJsonAsync("https://j40f1735-7218.usw2.devtunnels.ms/Account/register", au);
         var readResponse = await result.Content.ReadFromJsonAsync<ServiceResponse>();
         if (readResponse.Flag)
         {

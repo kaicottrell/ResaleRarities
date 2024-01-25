@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240124200422_addedLoginServiceRepobnseTokenInfo")]
-    partial class addedLoginServiceRepobnseTokenInfo
+    [Migration("20240125033212_rrWithApiEndpoint")]
+    partial class rrWithApiEndpoint
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
