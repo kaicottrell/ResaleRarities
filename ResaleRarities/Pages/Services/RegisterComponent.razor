@@ -52,7 +52,7 @@
             Email = RegistrationModel.Email,
             Password = RegistrationModel.Password
         };
-        var result = await httpClient.PostAsJsonAsync("https://j40f1735-7218.usw2.devtunnels.ms/Account/register", au);
+        var result = await httpClient.PostAsJsonAsync("https://resaleraritiesauth.azurewebsites.net/Account/register", au);
         var readResponse = await result.Content.ReadFromJsonAsync<ServiceResponse>();
         if (readResponse.Flag)
         {

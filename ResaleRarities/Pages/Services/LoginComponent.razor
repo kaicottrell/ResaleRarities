@@ -35,7 +35,7 @@
 
     private async Task HandleLogin()
     {
-        var result = await httpClient.PostAsJsonAsync("https://j40f1735-7218.usw2.devtunnels.ms/Account/Login", LoginModel);
+        var result = await httpClient.PostAsJsonAsync("https://resaleraritiesauth.azurewebsites.net/Account/Login", LoginModel);
         var response = await result.Content.ReadFromJsonAsync<ServiceResponse>();
         if (response.Flag)
         {
