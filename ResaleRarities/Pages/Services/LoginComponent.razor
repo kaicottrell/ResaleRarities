@@ -9,27 +9,39 @@
 @inject NavigationManager navigateMgr
 @inject AuthenticationStateProvider authStateProvider
 
-<EditForm Model="LoginModel" OnValidSubmit="HandleLogin">
-    <DataAnnotationsValidator></DataAnnotationsValidator>
-    <ValidationSummary></ValidationSummary>
+<div class="container mt-5">
+    <div class="row justify-content-center align-items-center">
+        <div class="col-md-4">
+            <!-- Adjust the column size as needed -->
+            <EditForm Model="LoginModel" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+                <ValidationSummary></ValidationSummary>
 
-    <div class="card">
-        <div class="card-header">Login Account</div>
-        <div class="card-body">
-            <div class="form-group mt-2">
-                <label>Email Address</label>
-                <InputText class="form-control" @bind-Value="LoginModel.Email"></InputText>
-            </div>
-            <div class="form-group mt-2">
-                <label>Password</label>
-                <InputText class="form-control" @bind-Value="LoginModel.Password"></InputText>
-            </div>
-        </div>
-        <div class="card-footer">
-            <button type="submit" class="btn btn-primary">Login</button>
+                <div class="card form-card">
+                    <div class="card-header form-header-footer text-center">
+                        Login Account
+                    </div>
+                    <div class="card-body form-body">
+                        <div class="form-group mt-3">
+                            <label>Email Address</label>
+                            <InputText class="form-control" @bind-Value="LoginModel.Email"></InputText>
+                        </div>
+                        <div class="form-group mt-3">
+                            <label>Password</label>
+                            <InputText type="password" class="form-control" @bind-Value="LoginModel.Password"></InputText>
+                        </div>
+                    </div>
+                    <div class="card-footer form-footer">
+                        <button type="submit" class="btn btn-primary">Login</button>
+                    </div>
+                </div>
+            </EditForm>
         </div>
     </div>
-</EditForm>
+</div>
+
+
+
 @code {
     private Login LoginModel { get; set; } = new();
 

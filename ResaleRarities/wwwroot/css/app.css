@@ -84,3 +84,148 @@ h1:focus {
         padding-left: env(safe-area-inset-left);
     }
 }
+
+/* Forms*/
+.form-card {
+    border: 1px solid #ff8c00;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.form-header-footer {
+    background-color: #ff8c00;
+    color: #ffffff;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 10px;
+    font-size: 1.5rem;
+}
+
+.form-footer {
+    background-color: #ff8c00;
+    color: #ffffff;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding: 20px;
+    text-align: center;
+}
+
+.form-group label {
+    color: #ff8c00;
+}
+
+.form-group .form-control {
+    border-color: #ff8c00;
+    color: #ff8c00;
+    width: 100%; /* Use 100% width for the input */
+}
+
+    .form-group .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25);
+        border-color: #ff8c00;
+    }
+.btn-primary {
+    background-color: #ffffff; /* White button */
+    color: #ff8c00; /* Orange text */
+    border-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease, color 0.3s ease;
+}
+
+    .btn-primary:hover {
+        background-color: #ff8c00; /* Orange on hover */
+        color: #ffffff; /* White text on hover */
+        border-color: #ff8c00;
+        transform: scale(1.05);
+    }
+
+/* Register Component Styles */
+.register-card {
+    border: 1px solid #ff8c00;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.register-header-footer {
+    background-color: #ff8c00;
+    color: #ffffff;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    padding: 10px;
+    font-size: 1.5rem;
+}
+
+.register-footer {
+    background-color: #ff8c00;
+    color: #ffffff;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    padding: 20px;
+    text-align: center;
+}
+
+.register-group label {
+    color: #ff8c00;
+}
+
+.register-group .form-control {
+    border-color: #ff8c00;
+    color: #ff8c00;
+}
+
+    .register-group .form-control:focus {
+        box-shadow: 0 0 0 0.2rem rgba(255, 140, 0, 0.25);
+        border-color: #ff8c00;
+    }
+
+.btn-register {
+    background-color: #ffffff; /* White button */
+    color: #ff8c00; /* Orange text */
+    border-color: #ffffff;
+    border-radius: 5px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease, color 0.3s ease;
+}
+
+    .btn-register:hover {
+        background-color: #ff8c00; /* Orange on hover */
+        color: #ffffff; /* White text on hover */
+        border-color: #ff8c00;
+        transform: scale(1.05);
+    }
+
+
+/* Listing Cards Styles */
+.listing-card {
+    border: 1px solid #ff8c00;
+    border-radius: 15px;
+    margin: 10px;
+    padding: 15px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+    transition: transform 0.3s ease;
+}
+
+    .listing-card:hover {
+        transform: scale(1.05);
+    }
+
+    .listing-card img {
+        max-width: 100%;
+        height: auto;
+        border-radius: 10px;
+        margin-bottom: 10px;
+    }
+
+.listing-card-title {
+    font-size: 1.2rem;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.listing-card-details {
+    color: #777;
+}
