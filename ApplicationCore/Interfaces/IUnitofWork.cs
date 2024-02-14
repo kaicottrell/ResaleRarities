@@ -17,6 +17,7 @@ namespace ApplicationCore.Interfaces
         public IGenericRepository<Category> Category { get; }
         public IGenericRepository<Condition> Condition { get; }
         public IGenericRepository<Inventory> Inventory { get; }
+        public IGenericRepository<RareImage> Image { get; }
         public IGenericRepository<Listing> Listing { get; }
         public IGenericRepository<ListingStatus> ListingStatus { get; }
         public IGenericRepository<Order> Order { get; }

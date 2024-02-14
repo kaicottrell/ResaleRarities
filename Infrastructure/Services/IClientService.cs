@@ -1,5 +1,5 @@
 ﻿using ApplicationCore.Models;
-using ApplicationCore.Models.NonDbModels;
+using ApplicationCore.Models.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -1,5 +1,5 @@
 using ApplicationCore.Models;
-using ApplicationCore.Models.NonDbModels;
+using ApplicationCore.Models.ViewModels;
 using Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

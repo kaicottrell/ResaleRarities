@@ -1,6 +1,6 @@
 ﻿using ApplicationCore.Interfaces;
 using ApplicationCore.Models;
-using ApplicationCore.Models.NonDbModels;
+using ApplicationCore.Models.ViewModels;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Microsoft.Extensions.Configuration;

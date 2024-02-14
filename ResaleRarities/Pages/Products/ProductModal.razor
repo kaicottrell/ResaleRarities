@@ -1,0 +1,260 @@
+@using ApplicationCore.Models
+@using ApplicationCore.Interfaces
+@using Microsoft.AspNetCore.Components
+@using Infrastructure.Services
+@if (IsVisible)
+{
+    <div class="custom-modal-wrapper">
+        <div class="custom-modal">
+            <div class="modal-content">
+                <EditForm Model="Product" OnValidSubmit="AddProduct">
+                    <DataAnnotationsValidator></DataAnnotationsValidator>
+                    <h3>Add Product</h3>
+                    <div class="form-group">
+                        <label>Pictures</label>
+                        <div class="scrollable-container">
+                            <!-- Add a container with scrollable CSS -->
+                            <div class="picture-scroll-pane">
+                                @foreach (var picture in Images)
+                                {
+                                    <img src="@($"data:image;base64,{Convert.ToBase64String(picture.ImageData)}")" alt="Product Picture" class="img-fluid picture-thumbnail" />
+                                }
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-primary" @onclick="ShowPictureOptions">Add Pictures</button>
+                    </div>
+
+
+                    <div class="form-group">
+                        <label for="productName">Product Name</label>
+                        <input id="productName" class="form-control" @bind="Product.Name" />
+                        <ValidationMessage For="@(() => Product.Name)" />
+                    </div>
+                    <div class="form-group">
+                        <label for="productDescription">Product Description</label>
+                        <textarea id="productDescription" class="form-control" @bind="Product.Description" rows="4"></textarea>
+                        <ValidationMessage For="@(() =>  Product.Description)" />
+                    </div>
+                   
+                    <div class="form-group">
+                        <label for="productCondition">Condition</label>
+                        <select id="productCondition" class="form-control" @bind="Product.ConditionId">
+                            <optgroup label="Select a Condition">
+                                <option value="0" disabled selected hidden>Select a Condition</option>
+                            </optgroup>
+                            @foreach (var condition in ConditionList)
+                            {
+                                <option value="@condition.Id">@condition.Type</option>
+                            }
+                        </select>
+
+                    </div>
+                    <div class="form-group">
+                        <label for="productCategory">Category</label>
+                        <select id="productCategory" class="form-control" @bind="Product.CategoryId">
+                            <optgroup label="Select a Category">
+                                <option value="0" disabled selected hidden>Select a Category</option>
+                            </optgroup>
+                            @foreach (var category in CategoryList)
+                            {
+                                <option value="@category.Id">@category.Name</option>
+                            }
+                        </select>
+
+                    </div>
+                    
+                    <div class="form-group text-center mt-3">
+                        <button type="button" class="btn btn-danger" @onclick="CloseModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+    @if (ShowPictureOptionsModal)
+    {
+        <div class="custom-modal-wrapper">
+            <div class="custom-modal">
+                <div class="modal-content">
+                    <!-- Picture options modal content -->
+                    <h3>Add Pictures</h3>
+                    <button type="button" class="btn btn-primary" @onclick="CaptureAndUploadImage">Capture Image</button>
+                    <button type="button" class="btn btn-primary" @onclick="UploadExistingImage">Upload Image</button>
+                    <button type="button" class="btn btn-danger" @onclick="ClosePictureOptions">Cancel</button>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@code{
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> IsVisibleChanged { get; set; }
+
+    [Parameter]
+    public string ListingId { get; set; }
+
+    [Parameter]
+    public string? ProductId { get; set; }
+    [Parameter]
+    public EventCallback OnProductAdded { get; set; }
+
+    private Product Product { get; set; } = new Product();
+    private IEnumerable<Category> CategoryList { get; set; } = new List<Category>();
+
+    private IEnumerable<Condition> ConditionList { get; set; } = new List<Condition>();
+
+    [Inject]
+    private IUnitofWork? _unitofWork { get; set; }
+    private IEnumerable<RareImage> Images { get; set; } = new List<RareImage>();
+    private bool ShowPictureOptionsModal { get; set; } = false;
+
+
+    protected override void OnInitialized()
+    {
+        if (IsVisible)
+        {
+
+            //Update
+            if (ProductId != null)
+            {
+                Product = _unitofWork!.Product.Get(p => p.Id == ProductId);
+            }
+            else // Create
+            {
+                Product.ListingId = ListingId;
+            }
+
+
+            CategoryList = _unitofWork.Category.List();
+            ConditionList = _unitofWork.Condition.List();
+        }
+
+    }
+
+    private async Task AddProduct()
+    {
+        // Add product logic
+        IsVisible = false; // Hide modal after adding product
+        IsVisibleChanged.InvokeAsync(false); // Hide modal
+
+        if (Product.CategoryId == 0)
+        {
+            Product.CategoryId = null;
+        }
+        if (Product.ConditionId == 0)
+        {
+            Product.ConditionId = null;
+        }
+        _unitofWork!.Product.Add(Product);
+
+
+
+        Product = new Product(); // Ensure that we have a fresh product
+        Product.ListingId = ListingId;
+
+        _unitofWork.Commit();
+        await OnProductAdded.InvokeAsync(); // Notify the parent component
+
+    }
+    private async Task CaptureAndUploadImage()
+    {
+        if (MediaPicker.Default.IsCaptureSupported)
+        {
+            FileResult myPhoto = await MediaPicker.Default.CapturePhotoAsync();
+            await SavePhoto(myPhoto);
+            ClosePictureOptions();
+        }
+        else
+        {
+            await Shell.Current.DisplayAlert("OOPS", "Your device is not supported", "Ok");
+        }
+
+    }
+    private async Task UploadExistingImage()
+    {
+        //Load photo
+        if (MediaPicker.Default.IsCaptureSupported)
+        {
+            FileResult myPhoto = await MediaPicker.Default.PickPhotoAsync();
+            await SavePhoto(myPhoto);
+            ClosePictureOptions();
+            // Trigger a state change to update the UI
+        }
+        else
+        {
+            await Shell.Current.DisplayAlert("OOPS", "Your device is not supported", "Ok");
+        }
+    }
+    async Task<byte[]> ConvertFileResultToBytes(FileResult fileResult)
+    {
+        try
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var stream = await fileResult.OpenReadAsync())
+                {
+                    await stream.CopyToAsync(memoryStream);
+                }
+                return memoryStream.ToArray();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error converting FileResult to bytes: {ex.Message}");
+            return null;
+        }
+    }
+
+
+    private void CloseModal()
+    {
+        IsVisible = false; // Hide modal
+        IsVisibleChanged.InvokeAsync(false); // Hide modal
+    }
+    private void ClosePictureOptions()
+    {
+        ShowPictureOptionsModal = false;
+    }
+    private void ShowPictureOptions()
+    {
+        ShowPictureOptionsModal = true;
+    }
+    private async Task SavePhoto(FileResult myPhoto)
+    {
+
+        if (myPhoto != null)
+        {
+            // Convert the photo to a byte array
+            byte[] imageBytes = await ConvertFileResultToBytes(myPhoto);
+            if (imageBytes != null)
+            {
+
+                //Save the image captured in the database
+                var capturedImage = new RareImage
+                {
+                    ImageData = imageBytes,
+                    ProductId = ProductId
+                };
+
+                var imagesList = Images.ToList();
+                imagesList.Add(capturedImage);
+
+                Images = imagesList;
+
+                _unitofWork.Commit();
+                // Proceed with saving the captured image in the database
+            }
+            else
+            {
+                // Handle error
+            }
+        }
+    }
+}
+
+

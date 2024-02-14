@@ -26,6 +26,7 @@ namespace Infrastructure.Data
         private IGenericRepository<Category> _Category;
         private IGenericRepository<Condition> _Condition;
         private IGenericRepository<Inventory> _Inventory;
+        private IGenericRepository<RareImage> _Image;
         private IGenericRepository<Listing> _Listing;
         private IGenericRepository<ListingStatus> _ListingStatus;
         private IGenericRepository<Order> _Order;
@@ -72,6 +73,14 @@ namespace Infrastructure.Data
             {
                 _Inventory ??= new GenericRepository<Inventory>(_dbContext);
                 return _Inventory;
+            }
+        }
+        public IGenericRepository<RareImage> Image
+        {
+            get
+            {
+                _Image ??= new GenericRepository<RareImage>(_dbContext);
+                return _Image;
             }
         }
         public IGenericRepository<Listing> Listing

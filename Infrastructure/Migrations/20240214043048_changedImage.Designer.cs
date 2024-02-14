@@ -4,6 +4,7 @@ using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240214043048_changedImage")]
+    partial class changedImage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -193,12 +196,15 @@ namespace Infrastructure.Migrations
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ConditionId")
+                    b.Property<int>("ConditionId")
                         .HasColumnType("int");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ListingId")
                         .IsRequired()
@@ -214,6 +220,8 @@ namespace Infrastructure.Migrations
 
                     b.HasIndex("ConditionId");
 
+                    b.HasIndex("ImageId");
+
                     b.HasIndex("ListingId");
 
                     b.ToTable("Product");
@@ -227,12 +235,7 @@ namespace Infrastructure.Migrations
                     b.Property<byte[]>("ImageData")
                         .HasColumnType("varbinary(max)");
 
-                    b.Property<string>("ProductId")
-                        .HasColumnType("nvarchar(450)");
-
                     b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
 
                     b.ToTable("RareImage");
                 });
@@ -329,7 +332,13 @@ namespace Infrastructure.Migrations
 
                     b.HasOne("ApplicationCore.Models.Condition", "Condition")
                         .WithMany()
-                        .HasForeignKey("ConditionId");
+                        .HasForeignKey("ConditionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApplicationCore.Models.RareImage", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageId");
 
                     b.HasOne("ApplicationCore.Models.Listing", "Listing")
                         .WithMany()
@@ -341,16 +350,9 @@ namespace Infrastructure.Migrations
 
                     b.Navigation("Condition");
 
+                    b.Navigation("Image");
+
                     b.Navigation("Listing");
-                });
-
-            modelBuilder.Entity("ApplicationCore.Models.RareImage", b =>
-                {
-                    b.HasOne("ApplicationCore.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId");
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.TokenInfo", b =>

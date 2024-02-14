@@ -1,0 +1,117 @@
+﻿@page "/Listings/ListingCrum"
+@using ApplicationCore.Models
+@using ApplicationCore.Interfaces
+@using ResaleRarities.Pages.Products
+@using Infrastructure.Utility;
+@using Microsoft.AspNetCore.Components.Authorization
+@using ResaleRarities.Authentication
+@using System.Security.Claims
+@inject AuthenticationStateProvider authStateProvider
+
+<div class="container mt-5">
+    <!-- The listing has a edit form section for all of the products that can be added - can be multiple -->
+    <EditForm Model="Listing" OnValidSubmit="HandleList">
+        <DataAnnotationsValidator></DataAnnotationsValidator>
+        <ValidationSummary></ValidationSummary>
+
+        <div class="card register-card">
+            <div class="card-header register-header-footer">
+                @(ListingId == null ? "Create" : "View") Listing
+            </div>
+            <div class="card-body register-group">
+
+                <div class="form-group">
+                    <label>DateTime Posted</label>
+                    <div>@DateTime.Now.ToShortDateString()</div>
+                </div>
+
+                <button type="button" class="btn btn-primary" @onclick="ShowProductModal">Add Product</button>
+                <!-- Render list of added products -->
+                @foreach (var product in Products)
+                {
+                    <div class="product">
+                        <span>@product.Name - @product.Description</span>
+                        <!-- Add option to remove product if needed -->
+                    </div>
+                }
+            </div>
+
+            <div class="d-flex justify-content-center">
+                <ProductModal ListingId="@Listing.Id" IsVisible="@IsProductModalVisible" IsVisibleChanged="UpdateVisibility" OnProductAdded="HandleProductAdded" />
+
+            </div>
+            
+
+            <div class="card-footer register-footer">
+                <button type="submit" class="btn btn-primary">Save Listing</button>
+            </div>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter]
+    public string? ListingId { get; set; }
+
+    private Listing Listing { get; set; } = new Listing();
+    private IEnumerable<Product> Products { get; set; } = new List<Product>();
+
+    private string ProductName { get; set; } = string.Empty;
+    private string ProductDescription { get; set; } = string.Empty;
+    private bool IsProductModalVisible { get; set; } = false;
+
+    [Inject]
+    private IUnitofWork? _unitofWork { get; set; }
+    [Inject]
+    private NavigationManager Navigation { get; set; } // Inject NavigationManager
+
+    protected override async void OnInitialized()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
+        var authState = await customAuthStateProvider.GetAuthenticationStateAsync(); // Await here
+        var userName = authState.User.FindFirst(ClaimTypes.Email).Value;
+
+        var user = _unitofWork.ApplicationUser.Get(u => u.Email == userName);
+
+        if (!string.IsNullOrEmpty(ListingId) && _unitofWork != null)
+        {
+            Listing = _unitofWork.Listing.Get(listing => listing.Id == ListingId);
+        }
+        else if (_unitofWork != null && user != null) // create a listing:
+        {
+            var draftLS = _unitofWork.ListingStatus.Get(ls => ls.StatusDescription == SD.LSDraft);
+            var newListing = new Listing
+            {
+                ListingStatusId = draftLS.Id,
+                ApplicationUserId = user.Id
+            };
+            _unitofWork.Listing.Add(newListing);
+            _unitofWork.Commit();
+            Listing = newListing;
+        }
+        else{
+            //TODO: throw error
+        }
+        Products = _unitofWork!.Product.List(product => product.ListingId == Listing.Id);
+    }
+
+    private void HandleList()
+    {
+        // Handle form submission
+    }
+
+    // Method to show the product modal
+    private void ShowProductModal()
+    {
+        // Set IsVisible to true to show the modal
+        IsProductModalVisible = true;
+    }
+    private void UpdateVisibility(bool isVisible)
+    {
+        IsProductModalVisible = isVisible;
+    }
+    private void HandleProductAdded()
+    {
+        Products = _unitofWork!.Product.List(product => product.ListingId == Listing.Id);
+    }
+}

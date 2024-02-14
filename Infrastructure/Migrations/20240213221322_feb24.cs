@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class rrWithApiEndpoint : Migration
+    public partial class feb24 : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -50,6 +50,18 @@ namespace Infrastructure.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Condition", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Image",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ImageData = table.Column<byte[]>(type: "varbinary(max)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Image", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -119,27 +131,28 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Product",
+                name: "Listing",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    CategoryId = table.Column<int>(type: "int", nullable: true),
-                    ConditionId = table.Column<int>(type: "int", nullable: false)
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ListingStatusId = table.Column<int>(type: "int", nullable: false),
+                    ApplicationUserId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    DateTimePosted = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    Compensation = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Product", x => x.Id);
+                    table.PrimaryKey("PK_Listing", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Product_Category_CategoryId",
-                        column: x => x.CategoryId,
-                        principalTable: "Category",
-                        principalColumn: "Id");
+                        name: "FK_Listing_ApplicationUser_ApplicationUserId",
+                        column: x => x.ApplicationUserId,
+                        principalTable: "ApplicationUser",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_Product_Condition_ConditionId",
-                        column: x => x.ConditionId,
-                        principalTable: "Condition",
+                        name: "FK_Listing_ListingStatus_ListingStatusId",
+                        column: x => x.ListingStatusId,
+                        principalTable: "ListingStatus",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -148,7 +161,7 @@ namespace Infrastructure.Migrations
                 name: "Order",
                 columns: table => new
                 {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CompletionDateTime = table.Column<DateTime>(type: "datetime2", nullable: true),
                     OrderStatusId = table.Column<int>(type: "int", nullable: false)
                 },
@@ -164,12 +177,51 @@ namespace Infrastructure.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Product",
+                columns: table => new
+                {
+                    Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    ListingId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CategoryId = table.Column<int>(type: "int", nullable: true),
+                    ConditionId = table.Column<int>(type: "int", nullable: false),
+                    ImageId = table.Column<string>(type: "nvarchar(450)", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Product", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Product_Category_CategoryId",
+                        column: x => x.CategoryId,
+                        principalTable: "Category",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Product_Condition_ConditionId",
+                        column: x => x.ConditionId,
+                        principalTable: "Condition",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_Product_Image_ImageId",
+                        column: x => x.ImageId,
+                        principalTable: "Image",
+                        principalColumn: "Id");
+                    table.ForeignKey(
+                        name: "FK_Product_Listing_ListingId",
+                        column: x => x.ListingId,
+                        principalTable: "Listing",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Inventory",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
+                    ProductId = table.Column<string>(type: "nvarchar(450)", nullable: true),
                     DateAcquired = table.Column<DateTime>(type: "datetime2", nullable: false),
                     ResalePrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false)
                 },
@@ -183,46 +235,20 @@ namespace Infrastructure.Migrations
                         principalColumn: "Id");
                 });
 
-            migrationBuilder.CreateTable(
-                name: "Listing",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    ListingStatusId = table.Column<int>(type: "int", nullable: false),
-                    ProductId = table.Column<Guid>(type: "uniqueidentifier", nullable: true),
-                    DateTimePosted = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    Compensation = table.Column<decimal>(type: "decimal(18,2)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Listing", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Listing_ListingStatus_ListingStatusId",
-                        column: x => x.ListingStatusId,
-                        principalTable: "ListingStatus",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Listing_Product_ProductId",
-                        column: x => x.ProductId,
-                        principalTable: "Product",
-                        principalColumn: "Id");
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_Inventory_ProductId",
                 table: "Inventory",
                 column: "ProductId");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Listing_ApplicationUserId",
+                table: "Listing",
+                column: "ApplicationUserId");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_Listing_ListingStatusId",
                 table: "Listing",
                 column: "ListingStatusId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Listing_ProductId",
-                table: "Listing",
-                column: "ProductId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Order_OrderStatusId",
@@ -238,6 +264,16 @@ namespace Infrastructure.Migrations
                 name: "IX_Product_ConditionId",
                 table: "Product",
                 column: "ConditionId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Product_ImageId",
+                table: "Product",
+                column: "ImageId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Product_ListingId",
+                table: "Product",
+                column: "ListingId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_TokenInfo_UserId",
@@ -257,9 +293,6 @@ namespace Infrastructure.Migrations
                 name: "Inventory");
 
             migrationBuilder.DropTable(
-                name: "Listing");
-
-            migrationBuilder.DropTable(
                 name: "Order");
 
             migrationBuilder.DropTable(
@@ -269,22 +302,28 @@ namespace Infrastructure.Migrations
                 name: "UserRoles");
 
             migrationBuilder.DropTable(
-                name: "ListingStatus");
-
-            migrationBuilder.DropTable(
                 name: "Product");
 
             migrationBuilder.DropTable(
                 name: "OrderStatus");
 
             migrationBuilder.DropTable(
-                name: "ApplicationUser");
-
-            migrationBuilder.DropTable(
                 name: "Category");
 
             migrationBuilder.DropTable(
                 name: "Condition");
+
+            migrationBuilder.DropTable(
+                name: "Image");
+
+            migrationBuilder.DropTable(
+                name: "Listing");
+
+            migrationBuilder.DropTable(
+                name: "ApplicationUser");
+
+            migrationBuilder.DropTable(
+                name: "ListingStatus");
         }
     }
 }

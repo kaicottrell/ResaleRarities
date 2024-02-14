@@ -1,23 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Reflection.Metadata;
 
 namespace ApplicationCore.Models
 {
-    public class Inventory
+    public class RareImage
     {
         [Key]
-        public int Id { get; set; }
+        [Required]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public byte[]? ImageData { get; set; }
         public string? ProductId { get; set; }
-        [DisplayFormat(DataFormatString = "{0:hh:mm tt MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime DateAcquired { get; set; }
-        public decimal ResalePrice { get; set; }
         [ForeignKey("ProductId")]
         public virtual Product? Product { get; set; }
-
     }
 }

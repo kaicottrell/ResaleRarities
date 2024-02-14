@@ -12,24 +12,19 @@ namespace ApplicationCore.Models
     public class Listing
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public Guid Id { get; set; }
         [Required]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         public int ListingStatusId { get; set; }
-       
-     //   [Required]
-      //  public string ApplicationUserId { get; set; } = string.Empty;
+        public string ApplicationUserId { get; set; } = string.Empty;
 
-        public Guid? ProductId { get; set; }
 
         [DisplayFormat(DataFormatString = "{0:hh:mm tt MM/dd/yyyy}", ApplyFormatInEditMode = true)]
-        public DateTime DateTimePosted { get; set; }
+        public DateTime DateTimePosted { get; set; } = DateTime.Now;
         public decimal? Compensation { get; set; }
-      //  [ForeignKey("ApplicationUserId")]
-      //  public virtual ApplicationUser? ApplicationUser { get; set; }
+
+        [ForeignKey("ApplicationUserId")]
+        public virtual ApplicationUser? ApplicationUser { get; set; }
         [ForeignKey("ListingStatusId")]
         public virtual ListingStatus? ListingStatus { get; set; }
-        [ForeignKey("ProductId")]
-        public virtual Product? Product { get; set; }
     }
 }

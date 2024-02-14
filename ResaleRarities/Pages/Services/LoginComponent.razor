@@ -2,7 +2,7 @@
 @using ResaleRarities.Authentication
 @using Microsoft.AspNetCore.Components.Authorization
 @using System.IdentityModel.Tokens.Jwt
-@using ApplicationCore.Models.NonDbModels
+@using ApplicationCore.Models.ViewModels
 @using System.Net.Http.Json
 @inject HttpClient httpClient
 @using System.Security.Claims
@@ -76,7 +76,7 @@
 
         return new UserSession()
             {
-                UserName = claims.First(_ => _.Type == ClaimTypes.Name).Value,
+                FullName = claims.First(_ => _.Type == ClaimTypes.Name).Value,
                 UserRole = claims.First(_ => _.Type == ClaimTypes.Role).Value,
                 Email = claims.First(_ => _.Type == ClaimTypes.Email).Value,
                 Token = token

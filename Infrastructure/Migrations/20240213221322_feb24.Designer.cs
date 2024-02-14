@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructure.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240125033212_rrWithApiEndpoint")]
-    partial class rrWithApiEndpoint
+    [Migration("20240213221322_feb24")]
+    partial class feb24
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -85,6 +85,19 @@ namespace Infrastructure.Migrations
                     b.ToTable("Condition");
                 });
 
+            modelBuilder.Entity("ApplicationCore.Models.Image", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<byte[]>("ImageData")
+                        .HasColumnType("varbinary(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Image");
+                });
+
             modelBuilder.Entity("ApplicationCore.Models.Inventory", b =>
                 {
                     b.Property<int>("Id")
@@ -96,8 +109,8 @@ namespace Infrastructure.Migrations
                     b.Property<DateTime>("DateAcquired")
                         .HasColumnType("datetime2");
 
-                    b.Property<Guid?>("ProductId")
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("ProductId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal>("ResalePrice")
                         .HasColumnType("decimal(18, 2)");
@@ -111,9 +124,12 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("ApplicationCore.Models.Listing", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ApplicationUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<decimal?>("Compensation")
                         .HasColumnType("decimal(18, 2)");
@@ -124,14 +140,11 @@ namespace Infrastructure.Migrations
                     b.Property<int>("ListingStatusId")
                         .HasColumnType("int");
 
-                    b.Property<Guid?>("ProductId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("ListingStatusId");
+                    b.HasIndex("ApplicationUserId");
 
-                    b.HasIndex("ProductId");
+                    b.HasIndex("ListingStatusId");
 
                     b.ToTable("Listing");
                 });
@@ -155,9 +168,8 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("ApplicationCore.Models.Order", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<DateTime?>("CompletionDateTime")
                         .HasColumnType("datetime2");
@@ -191,9 +203,8 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("ApplicationCore.Models.Product", b =>
                 {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int?>("CategoryId")
                         .HasColumnType("int");
@@ -205,6 +216,13 @@ namespace Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ImageId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ListingId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -214,6 +232,10 @@ namespace Infrastructure.Migrations
                     b.HasIndex("CategoryId");
 
                     b.HasIndex("ConditionId");
+
+                    b.HasIndex("ImageId");
+
+                    b.HasIndex("ListingId");
 
                     b.ToTable("Product");
                 });
@@ -274,19 +296,21 @@ namespace Infrastructure.Migrations
 
             modelBuilder.Entity("ApplicationCore.Models.Listing", b =>
                 {
+                    b.HasOne("ApplicationCore.Models.ApplicationUser", "ApplicationUser")
+                        .WithMany()
+                        .HasForeignKey("ApplicationUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("ApplicationCore.Models.ListingStatus", "ListingStatus")
                         .WithMany()
                         .HasForeignKey("ListingStatusId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ApplicationCore.Models.Product", "Product")
-                        .WithMany()
-                        .HasForeignKey("ProductId");
+                    b.Navigation("ApplicationUser");
 
                     b.Navigation("ListingStatus");
-
-                    b.Navigation("Product");
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.Order", b =>
@@ -312,9 +336,23 @@ namespace Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("ApplicationCore.Models.Image", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageId");
+
+                    b.HasOne("ApplicationCore.Models.Listing", "Listing")
+                        .WithMany()
+                        .HasForeignKey("ListingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Category");
 
                     b.Navigation("Condition");
+
+                    b.Navigation("Image");
+
+                    b.Navigation("Listing");
                 });
 
             modelBuilder.Entity("ApplicationCore.Models.TokenInfo", b =>

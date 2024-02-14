@@ -11,18 +11,21 @@ namespace ApplicationCore.Models
     public class Product
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public Guid Id { get; set; }
+        [Required]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string ListingId { get; set; } 
         [Required]
         public string Name { get; set; } = string.Empty;
         [Required]
         public string Description { get; set; } = string.Empty;
         public int? CategoryId { get; set; }
-        public int ConditionId { get; set; }
+        public int? ConditionId { get; set; }
         [ForeignKey("CategoryId")]
         public virtual Category? Category { get; set; }
         [ForeignKey("ConditionId")]
         public virtual Condition? Condition { get; set; }
-
+        [ForeignKey("ListingId")]
+        public virtual Listing? Listing { get; set; }
+        
     }
 }

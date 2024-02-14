@@ -11,8 +11,8 @@ namespace ApplicationCore.Models
     public class Order
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-        public Guid Id { get; set; }
+        [Required]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         [DisplayFormat(DataFormatString = "{0:hh:mm tt MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime? CompletionDateTime { get; set; }
         [Required]

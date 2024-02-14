@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ApplicationCore.Models.NonDbModels
+namespace ApplicationCore.Models.ViewModels
 {
     public class RegistrationModel
     {

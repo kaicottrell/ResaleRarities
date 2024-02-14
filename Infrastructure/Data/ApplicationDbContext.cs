@@ -16,6 +16,7 @@ namespace Infrastructure.Data
         public DbSet<Category> Category { get; set; }
         public DbSet<Condition> Condition { get; set; }
         public DbSet<Inventory> Inventory { get; set; }
+        public DbSet<RareImage> RareImage { get; set; }
         public DbSet<Listing> Listing { get; set; }
         public DbSet<ListingStatus> ListingStatus { get; set; }
         public DbSet<Order> Order { get; set; }

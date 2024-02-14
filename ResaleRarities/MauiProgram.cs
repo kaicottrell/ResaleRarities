@@ -7,6 +7,8 @@ using Infrastructure.Data;
 using ResaleRarities.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.EntityFrameworkCore;
+using static System.Formats.Asn1.AsnWriter;
+using Infrastructure.Services;
 
 namespace ResaleRarities
 {
@@ -27,7 +29,7 @@ namespace ResaleRarities
                 builder.Services.AddMauiBlazorWebView();
 
                 // Read the connection string directly from appsettings.json
-                string connectionString = "Data Source=resalerarity.database.windows.net,1433;Initial Catalog=ResaleRarities;User Id=kcadmin;Password=rrforweber7!;Encrypt=True;";
+                string connectionString = "Data Source=resalerare.database.windows.net,1433;Initial Catalog=ResaleRarityV2;User Id=resalerarityadmin;Password=rrforweber7!;Encrypt=True;";
 
                 // Register the connection string with the App instance
                 builder.Services.AddSingleton(connectionString);
@@ -42,11 +44,17 @@ namespace ResaleRarities
                 builder.Services.AddHttpClient();
                 builder.Services.AddMauiBlazorWebView();
                 builder.Services.AddScoped<IUnitofWork, UnitofWork>();
+
 #if DEBUG
                 builder.Services.AddBlazorWebViewDeveloperTools();
                 builder.Logging.AddDebug();
 #endif
 
+
+                var serviceProvider = builder.Services.BuildServiceProvider();
+                using var scope = serviceProvider.CreateScope();
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                SeedData.EnsurePopulated(dbContext);
                 return builder.Build();
             }
             catch (Exception ex)
