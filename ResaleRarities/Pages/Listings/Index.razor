@@ -23,14 +23,15 @@ else
         @foreach (var listing in Listings)
         {
             <div class="col-12 col-md-4">
-                <div class="listing-card">
-                    <div class="listing-card-title">@(!string.IsNullOrEmpty(listing.title) ? listing.title : listing.Id.ToString())</div>
+                <div class="listing-card" @onclick="() => NavigateToListing(listing.Id)">
+                    <div class="listing-card-title">@(!string.IsNullOrEmpty(listing.Title) ? listing.Title : listing.Id.ToString())</div>
                     <div class="listing-card-details">
+                        <p>Status: @listing.ListingStatus.StatusDescription</p>
                         <p>Posted on: @listing.DateTimePosted.ToString("MM/dd/yyyy")</p>
                         <p>Compensation: @(listing.Compensation.HasValue ? listing.Compensation.Value.ToString("C") : "N/A")</p>
                         <!-- Add other details as needed -->
                     </div>
-                    <button @onclick="() => NavigateToListing(listing.Id)">View Listing</button>
+                 
                 </div>
             </div>
         }
@@ -41,8 +42,10 @@ else
     private IUnitofWork? _unitofWork { get; set; }
     [Inject]
     private NavigationManager Navigation { get; set; } // Inject NavigationManager
+
     private IEnumerable<Listing>? Listings;
     private bool IsLoaded = false;
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,12 +54,32 @@ else
         var userName = authState.User.FindFirst(ClaimTypes.Email).Value;
 
         var user = _unitofWork.ApplicationUser.Get(u => u.Email == userName);
+        
+        ListingCleanup(user);
+        
 
-        Listings = _unitofWork.Listing.List(listing => listing.ApplicationUserId == user.Id);
+        Listings = _unitofWork.Listing.List(listing => listing.ApplicationUserId == user.Id, null, "ListingStatus");
         IsLoaded = true;
     }
     private void NavigateToListing(string Id)
     {
         Navigation.NavigateTo($"/Listings/ListingCrum/{Id}");
     }
+    private void ListingCleanup(ApplicationUser user)
+    {
+        // Perform cleanup if necessary
+        // - Delete temporary data related to the previous listing if there is no products associated with the listing
+        var temporaryListings = _unitofWork.Listing.List(listing => listing.ApplicationUserId == user.Id);
+        foreach (var tempListing in temporaryListings)
+        {
+            var tempProduct = _unitofWork.Product.Get(p => p.ListingId == tempListing.Id);
+            //There is no products associated with the listing:
+            if (tempProduct == null)
+            {
+                _unitofWork.Listing.Delete(tempListing);
+            }
+        }
+        _unitofWork.Commit();
+    }
+   
 }

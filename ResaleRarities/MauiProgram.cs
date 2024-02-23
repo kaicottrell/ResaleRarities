@@ -44,6 +44,7 @@ namespace ResaleRarities
                 builder.Services.AddHttpClient();
                 builder.Services.AddMauiBlazorWebView();
                 builder.Services.AddScoped<IUnitofWork, UnitofWork>();
+                builder.Services.AddScoped<NotificationService, NotificationService>();
 
 #if DEBUG
                 builder.Services.AddBlazorWebViewDeveloperTools();

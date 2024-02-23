@@ -1,4 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Components.Authorization
+@using Infrastructure.Services;
+@inject NotificationService NotificationService
+
 <CascadingAuthenticationState>
     <Router AppAssembly="@typeof(MauiProgram).Assembly">
         <Found Context="routeData">
@@ -19,3 +22,50 @@
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
+
+@if (!string.IsNullOrEmpty(notificationMessage))
+{
+    <div class="overlay @overlayClass"></div>
+    <div class="notification @notificationClass">
+        @notificationMessage
+    </div>
+}
+
+@code {
+    private string notificationMessage = "";
+    private bool showNotification = false;
+    private string overlayClass = "";
+    private string notificationClass = "";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            NotificationService.OnShowNotification += ShowNotification;
+        }
+    }
+
+    private async void ShowNotification(string message, string type)
+    {
+        notificationMessage = message;
+        showNotification = true;
+        notificationClass = type == "success" ? "success" : "error"; // Set class based on notification type
+        overlayClass = "show-overlay"; // Show the overlay
+        StateHasChanged();
+
+        // Hide the notification after 3 seconds
+        await Task.Delay(4000);
+
+        notificationClass = $"{notificationClass} fade-out"; // Add fade-out class to trigger the animation
+        StateHasChanged();
+
+        await Task.Delay(500); // Wait for the animation to complete
+
+        showNotification = false;
+        overlayClass = ""; // Hide the overlay
+        notificationMessage = ""; // Clear the notification message
+        StateHasChanged(); // Notify Blazor of the state change
+    }
+
+
+}

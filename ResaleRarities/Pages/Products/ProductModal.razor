@@ -2,100 +2,96 @@
 @using ApplicationCore.Interfaces
 @using Microsoft.AspNetCore.Components
 @using Infrastructure.Services
-@if (IsVisible)
+
+<div class="custom-modal-wrapper">
+    <div class="custom-modal">
+        <div class="modal-content">
+            <EditForm Model="Product" OnValidSubmit="AddProduct">
+                <DataAnnotationsValidator></DataAnnotationsValidator>
+                <h3>@(ProductId == null ? "Add" : "Edit") Product</h3>
+                <div class="form-group">
+                    <label>Pictures</label>
+                    <div class="scrollable-container">
+                        <!-- Add a container with scrollable CSS -->
+                        <div class="picture-scroll-pane">
+                            @foreach (var picture in Images)
+                            {
+                                <img src="@($"data:image;base64,{Convert.ToBase64String(picture.ImageData)}")" alt="Product Picture" class="img-fluid picture-thumbnail" />
+                            }
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-primary" @onclick="ShowPictureOptions">Add Pictures</button>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="productName">Product Name</label>
+                    <input id="productName" class="form-control" @bind="Product.Name" />
+                    <ValidationMessage For="@(() => Product.Name)" />
+                </div>
+                <div class="form-group">
+                    <label for="productDescription">Product Description</label>
+                    <textarea id="productDescription" class="form-control" @bind="Product.Description" rows="4"></textarea>
+                    <ValidationMessage For="@(() =>  Product.Description)" />
+                </div>
+                   
+                <div class="form-group">
+                    <label for="productCondition">Condition</label>
+                    <select id="productCondition" class="form-control" @bind="Product.ConditionId">
+                        <optgroup label="Select a Condition">
+                            <option value="0" disabled selected hidden>Select a Condition</option>
+                        </optgroup>
+                        @foreach (var condition in ConditionList)
+                        {
+                            <option value="@condition.Id">@condition.Type</option>
+                        }
+                    </select>
+
+                </div>
+                <div class="form-group">
+                    <label for="productCategory">Category</label>
+                    <select id="productCategory" class="form-control" @bind="Product.CategoryId">
+                        <optgroup label="Select a Category">
+                            <option value="0" disabled selected hidden>Select a Category</option>
+                        </optgroup>
+                        @foreach (var category in CategoryList)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </select>
+
+                </div>
+                    
+                <div class="form-group text-center mt-3">
+                    @if (Images.Any() || !string.IsNullOrEmpty(Product.Name) || !string.IsNullOrEmpty(Product.Description))
+                    {
+                        <button type="button" class="btn btn-danger" @onclick="Delete">Delete</button>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    }
+                  
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+@if (ShowPictureOptionsModal)
 {
     <div class="custom-modal-wrapper">
         <div class="custom-modal">
             <div class="modal-content">
-                <EditForm Model="Product" OnValidSubmit="AddProduct">
-                    <DataAnnotationsValidator></DataAnnotationsValidator>
-                    <h3>Add Product</h3>
-                    <div class="form-group">
-                        <label>Pictures</label>
-                        <div class="scrollable-container">
-                            <!-- Add a container with scrollable CSS -->
-                            <div class="picture-scroll-pane">
-                                @foreach (var picture in Images)
-                                {
-                                    <img src="@($"data:image;base64,{Convert.ToBase64String(picture.ImageData)}")" alt="Product Picture" class="img-fluid picture-thumbnail" />
-                                }
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-primary" @onclick="ShowPictureOptions">Add Pictures</button>
-                    </div>
-
-
-                    <div class="form-group">
-                        <label for="productName">Product Name</label>
-                        <input id="productName" class="form-control" @bind="Product.Name" />
-                        <ValidationMessage For="@(() => Product.Name)" />
-                    </div>
-                    <div class="form-group">
-                        <label for="productDescription">Product Description</label>
-                        <textarea id="productDescription" class="form-control" @bind="Product.Description" rows="4"></textarea>
-                        <ValidationMessage For="@(() =>  Product.Description)" />
-                    </div>
-                   
-                    <div class="form-group">
-                        <label for="productCondition">Condition</label>
-                        <select id="productCondition" class="form-control" @bind="Product.ConditionId">
-                            <optgroup label="Select a Condition">
-                                <option value="0" disabled selected hidden>Select a Condition</option>
-                            </optgroup>
-                            @foreach (var condition in ConditionList)
-                            {
-                                <option value="@condition.Id">@condition.Type</option>
-                            }
-                        </select>
-
-                    </div>
-                    <div class="form-group">
-                        <label for="productCategory">Category</label>
-                        <select id="productCategory" class="form-control" @bind="Product.CategoryId">
-                            <optgroup label="Select a Category">
-                                <option value="0" disabled selected hidden>Select a Category</option>
-                            </optgroup>
-                            @foreach (var category in CategoryList)
-                            {
-                                <option value="@category.Id">@category.Name</option>
-                            }
-                        </select>
-
-                    </div>
-                    
-                    <div class="form-group text-center mt-3">
-                        <button type="button" class="btn btn-danger" @onclick="CloseModal">Cancel</button>
-                        <button type="submit" class="btn btn-primary">Save</button>
-
-                    </div>
-                </EditForm>
+                <!-- Picture options modal content -->
+                <h3>Add Pictures</h3>
+                <button type="button" class="btn btn-primary" @onclick="CaptureAndUploadImage">Capture Image</button>
+                <button type="button" class="btn btn-primary" @onclick="UploadExistingImage">Upload Image</button>
+                <button type="button" class="btn btn-danger" @onclick="ClosePictureOptions">Cancel</button>
             </div>
         </div>
     </div>
-    @if (ShowPictureOptionsModal)
-    {
-        <div class="custom-modal-wrapper">
-            <div class="custom-modal">
-                <div class="modal-content">
-                    <!-- Picture options modal content -->
-                    <h3>Add Pictures</h3>
-                    <button type="button" class="btn btn-primary" @onclick="CaptureAndUploadImage">Capture Image</button>
-                    <button type="button" class="btn btn-primary" @onclick="UploadExistingImage">Upload Image</button>
-                    <button type="button" class="btn btn-danger" @onclick="ClosePictureOptions">Cancel</button>
-                </div>
-            </div>
-        </div>
-    }
 }
 
 
+
 @code{
-    [Parameter]
-    public bool IsVisible { get; set; }
-
-    [Parameter]
-    public EventCallback<bool> IsVisibleChanged { get; set; }
-
     [Parameter]
     public string ListingId { get; set; }
 
@@ -103,6 +99,8 @@
     public string? ProductId { get; set; }
     [Parameter]
     public EventCallback OnProductAdded { get; set; }
+    [Parameter]
+    public EventCallback ClosedProductModal { get; set; }
 
     private Product Product { get; set; } = new Product();
     private IEnumerable<Category> CategoryList { get; set; } = new List<Category>();
@@ -117,10 +115,7 @@
 
     protected override void OnInitialized()
     {
-        
-       SetUpProduct();
-        
-
+        SetUpProduct();
     }
     private void SetUpProduct()
     {
@@ -129,6 +124,10 @@
         if (ProductId != null)
         {
             Product = _unitofWork!.Product.Get(p => p.Id == ProductId);
+            Images = _unitofWork.Image.List(image => image.ProductId == Product.Id);
+
+            //Gather the images associated with the product
+
         }
         else // Create
         {
@@ -145,10 +144,6 @@
 
     private async Task AddProduct()
     {
-        // Add product logic
-        IsVisible = false; // Hide modal after adding product
-        IsVisibleChanged.InvokeAsync(false); // Hide modal
-
         if (Product.CategoryId == 0)
         {
             Product.CategoryId = null;
@@ -163,8 +158,6 @@
         await OnProductAdded.InvokeAsync(); // Notify the parent component
         Product = new Product(); // Ensure that we have a fresh product
         Images = new List<RareImage>(); // fresh list of images
-        SetUpProduct();
-
     }
     private async Task CaptureAndUploadImage()
     {
@@ -215,11 +208,14 @@
         }
     }
 
-
-    private void CloseModal()
+    private void Delete()
     {
-        IsVisible = false; // Hide modal
-        IsVisibleChanged.InvokeAsync(false); // Hide modal
+        if (Product != null)
+        {
+            _unitofWork.Product.Delete(Product);
+            _unitofWork.Commit();
+        }
+        ClosedProductModal.InvokeAsync(false); // Hide modal
     }
     private void ClosePictureOptions()
     {

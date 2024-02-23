@@ -3,6 +3,7 @@
 @using ApplicationCore.Models
 @using ApplicationCore.Interfaces
 @using Microsoft.AspNetCore.Components
+@using Infrastructure.Utility
 @inject IJSRuntime JsRuntime
 
 <PageTitle>Index</PageTitle>
@@ -11,24 +12,53 @@
     <!-- Listing Cards Section -->
     <h1 class="text-center"> Current Listings</h1>
     <div class="row">
-        @for (int i = 0; i < 20; i++)
+        @foreach (var product in ProductListings)
         {
-            <div class="col-12 col-sm-4">
-                <div class="listing-card">
-                    <img src="https://via.placeholder.com/150" alt="Sample Image">
-                    <div class="listing-card-title">Product Title</div>
-                    <div class="listing-card-details">
-                        <p>Posted on: January 31, 2024</p>
-                        <p>Compensation: $100</p>
-                        <!-- Add other details as needed -->
+            @if (product != null)
+            {
+                <div class="col-md-4 col-12 d-flex align-items-stretch ">
+                    <div class="listing-card w-100" @onclick="()=> ViewProduct(product.Id)">
+                        @{
+                            var frontImage = _unitofWork.Image.Get(image => image.ProductId == product.Id);
+                            if (frontImage != null)
+                            {
+                                <div class="justify-content-center d-flex">
+                                    <img src="@($"data:image;base64,{Convert.ToBase64String(frontImage.ImageData)}")" alt="Product Picture" class="listing-card-image" style="width: 200px; height: 200px;" />
+                                </div>
+                            }
+                            else
+                            {
+                                <img src="https://via.placeholder.com/150" alt="Placeholder Image" class="listing-card-image" />
+                            }
+                        }
+                        <div class="text-center">@product.Name</div>
+                       
+                        <p>Condition: @(product.Condition?.Type ?? "Not Listed")</p>
+                        <p>Category: @(product.Category?.Name ?? "Not Listed")</p>
+                        
                     </div>
-                    <i class="fa-solid fa-house"></i>
                 </div>
-            </div>
+            }
 
-            <!-- Add more listing cards as needed -->
+
+
         }
     </div>
   
    
 </div>
+@code
+{
+    IEnumerable<Product> ProductListings = new List<Product>();
+    [Inject]
+    private IUnitofWork? _unitofWork { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ProductListings = _unitofWork!.Product.List(pl => pl.Listing.ListingStatus.StatusDescription != SD.LSDraft, includes: "Listing.ListingStatus");
+    }
+    private void ViewProduct(string Id)
+    {
+        
+    }
+}

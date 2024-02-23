@@ -16,7 +16,8 @@ namespace ApplicationCore.Models
         public string Id { get; set; } = Guid.NewGuid().ToString();
         public int ListingStatusId { get; set; }
         public string ApplicationUserId { get; set; } = string.Empty;
-        public string? title { get; set; }
+        [Required]
+        public string Title { get; set; } = string.Empty;
 
         [DisplayFormat(DataFormatString = "{0:hh:mm tt MM/dd/yyyy}", ApplyFormatInEditMode = true)]
         public DateTime DateTimePosted { get; set; } = DateTime.Now;

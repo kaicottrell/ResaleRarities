@@ -4,9 +4,11 @@
 @using ApplicationCore.Interfaces
 @using ResaleRarities.Pages.Products
 @using Infrastructure.Utility;
+@using Infrastructure.Services;
 @using Microsoft.AspNetCore.Components.Authorization
 @using ResaleRarities.Authentication
 @using System.Security.Claims
+@inject NotificationService NotificationService
 @inject AuthenticationStateProvider authStateProvider
 
 <div class="container mt-5">
@@ -23,98 +25,117 @@
     }
     else
     {
-
-
         <!-- The listing has a edit form section for all of the products that can be added - can be multiple -->
         <EditForm Model="Listing" OnValidSubmit="HandleList">
             <DataAnnotationsValidator></DataAnnotationsValidator>
-            <ValidationSummary></ValidationSummary>
-
-            <div class="card register-card">
+            <div class="card register-card" >
                 <div class="card-header register-header-footer">
-                    @(ListingId == null ? "Create" : "View") Listing -
+                    @(ListingId == null ? "Create" : "View") Listing -@(Listing.Title == null ? "" : Listing.Title) 
                     @(Listing == null ? DateTime.Now.ToString("MM/dd/yyyy hh:mm tt") : Listing.DateTimePosted.ToString("MM/dd/yyyy hh:mm tt"))
                 </div>
                 <div class="card-body register-group">
-                    <button type="button" class="btn btn-primary" @onclick="ShowProductModal" disabled="@(!IsDataLoaded)">Add Product</button>
+                    <div class="form-group col-md-4">
+                        <label for="listingTitle">Title</label>
+                        <input id="listingTitle" class="form-control" @bind="Listing.Title" />
+                        <ValidationMessage For="@(() => Listing.Title)" />
+                    </div>
+                    <button type="button" class="btn btn-primary" @onclick="()=> ShowProductModal()" disabled="@(!IsDataLoaded)">Add Product</button>
                     <!-- Render list of added products -->
-                    <div class="row">
+                    <div class="row d-flex justify-content-center card-grid">
                         @foreach (var product in Products)
                         {
                             @if (product != null)
                             {
-                                <div class="col-md-4 col-12">
-                                    <div class="listing-card">
-                                        @{
-                                            var frontImage = _unitofWork.Image.Get(image => image.ProductId == product.Id);
-                                            if (frontImage != null)
-                                            {
-                                                <div class="justify-content-center d-flex">
-                                                    <img src="@($"data:image;base64,{Convert.ToBase64String(frontImage.ImageData)}")" alt="Product Picture" class="listing-card-image" />
-                                                </div>
-
+                                <div class="col-md-4 col-12 d-flex align-items-stretch">
+                                        <div class="listing-card" @onclick="()=> ShowProductModal(product.Id)">
+                                            @{
+                                                var frontImage = _unitofWork.Image.Get(image => image.ProductId == product.Id);
+                                                if (frontImage != null)
+                                                {
+                                                    <div class="justify-content-center d-flex">
+                                                        <img src="@($"data:image;base64,{Convert.ToBase64String(frontImage.ImageData)}")" alt="Product Picture" class="listing-card-image" />
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <img src="https://via.placeholder.com/150" alt="Placeholder Image" class="listing-card-image" />
+                                                }
                                             }
-                                            else
-                                            {
-                                                <img src="https://via.placeholder.com/150" alt="Placeholder Image" class="listing-card-image" />
-                                            }
-                                        }
-                                        <div class="listing-card-title text-center">@product.Name</div>
-                                        <div class="listing-card-details">
-                                            <p>Description: @product.Description</p>
-                                            <p>Condition: @(product.Condition?.Type ?? "Not Listed")</p>
-                                            <p>Category: @(product.Category?.Name ?? "Not Listed")</p>
+                                            <div class="listing-card-title text-center">@product.Name</div>
+                                            <div class="listing-card-details">
+                                                <p>Description: @product.Description</p>
+                                                <p>Condition: @(product.Condition?.Type ?? "Not Listed")</p>
+                                                <p>Category: @(product.Category?.Name ?? "Not Listed")</p>
+                                            </div>
                                         </div>
-
-                                    </div>
+                                    
                                 </div>
                             }
+
 
 
                         }
                     </div>
 
                 </div>
+                @if (IsProductModalVisible)
+                {
+                    <div class="d-flex justify-content-center">
+                        <ProductModal ListingId="@Listing.Id" ProductId="@SelectedProductId" ClosedProductModal="HandleCloseModal" OnProductAdded="HandleProductAdded" />
 
-                <div class="d-flex justify-content-center">
-                    <ProductModal ListingId="@Listing.Id" IsVisible="@IsProductModalVisible" IsVisibleChanged="UpdateVisibility" OnProductAdded="HandleProductAdded" />
-
-                </div>
-
-
+                    </div>
+                }
+               
                 <div class="card-footer register-footer">
-                    <button type="submit" class="btn btn-primary">Save Listing</button>
+                    <div class="button-group">
+                       
+                        @if(Products != null && Products.Count() > 0){
+                            <button type="button" @onclick="DeleteListingAndExit" class="btn btn-secondary">Delete</button> @* how to go back to previous page?*@
+                            <button type="button" @onclick="ExitListing" class="btn btn-secondary">Save</button>
+                            @if(Listing.ListingStatus.StatusDescription == SD.LSDraft){
+                                <button type="submit" class="btn btn-primary">Post Listing</button>
+                            }
+                            else
+                            {
+                                <button type="button" @onclick="RemoveListing" class="btn btn-primary">Remove Listing</button>
+                            }
+                        }
+                        else
+                        {
+                            <button type="button" @onclick="ExitListing" class="btn btn-secondary">Cancel</button>
+                        }
+                    </div>
+                    
                 </div>
             </div>
         </EditForm>
-
     }
 </div>
 
 @code {
     [Parameter]
     public string? ListingId { get; set; }
-
+    public string? SelectedProductId { get; set; }
     private Listing Listing { get; set; } = new Listing();
     private IEnumerable<Product> Products { get; set; } = new List<Product>();
 
     private string ProductName { get; set; } = string.Empty;
     private string ProductDescription { get; set; } = string.Empty;
+    //Booleans relating to the visibility of the modals
     private bool IsProductModalVisible { get; set; } = false;
 
     [Inject]
     private IUnitofWork? _unitofWork { get; set; }
     [Inject]
     private NavigationManager Navigation { get; set; } // Inject NavigationManager
+    private string PreviousUri { get; set; }
+
+
     private bool IsDataLoaded { get; set; } = false; // Flag to track data loading
 
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadDataAsync();
-    }
 
-
+    // Basically a Onintialized when parameters are used
     protected override async Task OnParametersSetAsync()
     {
         await LoadDataAsync();
@@ -122,6 +143,7 @@
 
     private async Task LoadDataAsync()
     {
+        IsDataLoaded = false;
         var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
         var authState = await customAuthStateProvider.GetAuthenticationStateAsync();
         var userName = authState.User.FindFirst(ClaimTypes.Email).Value;
@@ -157,16 +179,40 @@
 
     private void HandleList()
     {
+        bool allProductsComplete = Products
+        .All(product =>
+            !string.IsNullOrEmpty(product.Category?.Name) && !string.IsNullOrEmpty(product.Condition?.Type)
+            && _unitofWork.Image.Get(image => image.ProductId == product.Id) != null
+         );
+
+
+        if (allProductsComplete)
+        {
+            // All products have category and condition
+
+            Listing.ListingStatusId = _unitofWork.ListingStatus.Get(status => status.StatusDescription == SD.LSPostedForBid).Id;
+            _unitofWork.Listing.Update(Listing);
+            _unitofWork.Commit();
+            NotificationService.ShowNotification("SUCCESS: Your Listing Has Been Posted", "success");
+            Navigation.NavigateTo("/");
+        }
+        else
+        {
+            // Not all products have complete information
+            NotificationService.ShowNotification("ERROR: All Product Details Must Be Complete Before Listing", "error");
+            Listing.ListingStatusId = _unitofWork.ListingStatus.Get(status => status.StatusDescription == SD.LSDraft).Id;
+        }
         // Handle form submission
         _unitofWork.Listing.Update(Listing);
         _unitofWork.Commit();
     }
 
     // Method to show the product modal
-    private void ShowProductModal()
+    private void ShowProductModal(string? productId = null)
     {
         // Set IsVisible to true to show the modal
         IsProductModalVisible = true;
+        SelectedProductId = productId;
     }
     private void UpdateVisibility(bool isVisible)
     {
@@ -175,5 +221,33 @@
     private void HandleProductAdded()
     {
         Products = _unitofWork!.Product.List(product => product.ListingId == Listing.Id);
+        IsProductModalVisible = false; // Close the modal after adding the product
     }
+    private void ExitListing()
+    {
+        // Navigate to the previous URL
+        Navigation.NavigateTo("/");
+    }
+    private void DeleteListingAndExit()
+    {
+        _unitofWork.Product.Delete(Products);
+        _unitofWork.Listing.Delete(Listing);
+        Navigation.NavigateTo("/");
+    }
+
+    private void HandleCloseModal()
+    {
+        IsProductModalVisible = false;
+        Products = _unitofWork!.Product.List(product => product.ListingId == Listing.Id);
+
+    }
+    private void RemoveListing()
+    {
+        Listing.ListingStatusId = _unitofWork.ListingStatus.Get(status => status.StatusDescription == SD.LSDraft).Id;
+        _unitofWork.Listing.Update(Listing);
+        NotificationService.ShowNotification("Sucessfully Removed Posting", "success");
+        StateHasChanged();
+    }
+
+
 }
