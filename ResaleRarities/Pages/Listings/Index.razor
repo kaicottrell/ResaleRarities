@@ -1,0 +1,62 @@
+﻿@using ApplicationCore.Models
+@using ApplicationCore.Interfaces
+@using ResaleRarities.Pages.Products
+@using Infrastructure.Utility;
+@using Microsoft.AspNetCore.Components.Authorization
+@using ResaleRarities.Authentication
+@using System.Security.Claims
+@inject AuthenticationStateProvider authStateProvider
+@page "/Listings/Index"
+<h3>My listings</h3>
+
+@if (!IsLoaded)
+{
+    <p>Loading...</p>
+}
+else if (Listings == null || !Listings.Any())
+{
+    <p>No Listings found</p>
+}
+else
+{
+    <div class="row">
+        @foreach (var listing in Listings)
+        {
+            <div class="col-12 col-md-4">
+                <div class="listing-card">
+                    <div class="listing-card-title">@(!string.IsNullOrEmpty(listing.title) ? listing.title : listing.Id.ToString())</div>
+                    <div class="listing-card-details">
+                        <p>Posted on: @listing.DateTimePosted.ToString("MM/dd/yyyy")</p>
+                        <p>Compensation: @(listing.Compensation.HasValue ? listing.Compensation.Value.ToString("C") : "N/A")</p>
+                        <!-- Add other details as needed -->
+                    </div>
+                    <button @onclick="() => NavigateToListing(listing.Id)">View Listing</button>
+                </div>
+            </div>
+        }
+    </div>
+}
+@code {
+    [Inject]
+    private IUnitofWork? _unitofWork { get; set; }
+    [Inject]
+    private NavigationManager Navigation { get; set; } // Inject NavigationManager
+    private IEnumerable<Listing>? Listings;
+    private bool IsLoaded = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
+        var authState = await customAuthStateProvider.GetAuthenticationStateAsync(); // Await here
+        var userName = authState.User.FindFirst(ClaimTypes.Email).Value;
+
+        var user = _unitofWork.ApplicationUser.Get(u => u.Email == userName);
+
+        Listings = _unitofWork.Listing.List(listing => listing.ApplicationUserId == user.Id);
+        IsLoaded = true;
+    }
+    private void NavigateToListing(string Id)
+    {
+        Navigation.NavigateTo($"/Listings/ListingCrum/{Id}");
+    }
+}

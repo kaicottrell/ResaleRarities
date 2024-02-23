@@ -88,6 +88,7 @@
     }
 }
 
+
 @code{
     [Parameter]
     public bool IsVisible { get; set; }
@@ -106,7 +107,7 @@
     private Product Product { get; set; } = new Product();
     private IEnumerable<Category> CategoryList { get; set; } = new List<Category>();
 
-    private IEnumerable<Condition> ConditionList { get; set; } = new List<Condition>();
+    private IEnumerable<ApplicationCore.Models.Condition> ConditionList { get; set; } = new List<ApplicationCore.Models.Condition>();
 
     [Inject]
     private IUnitofWork? _unitofWork { get; set; }
@@ -118,22 +119,29 @@
     {
         if (IsVisible)
         {
-
-            //Update
-            if (ProductId != null)
-            {
-                Product = _unitofWork!.Product.Get(p => p.Id == ProductId);
-            }
-            else // Create
-            {
-                Product.ListingId = ListingId;
-            }
-
-
-            CategoryList = _unitofWork.Category.List();
-            ConditionList = _unitofWork.Condition.List();
+            SetUpProduct();
         }
 
+    }
+    private void SetUpProduct()
+    {
+
+        //Update
+        if (ProductId != null)
+        {
+            Product = _unitofWork!.Product.Get(p => p.Id == ProductId);
+        }
+        else // Create
+        {
+            Product.ListingId = ListingId;
+            _unitofWork!.Product.Add(Product);
+            _unitofWork.Commit();
+
+        }
+
+
+        CategoryList = _unitofWork.Category.List();
+        ConditionList = _unitofWork.Condition.List();
     }
 
     private async Task AddProduct()
@@ -150,15 +158,13 @@
         {
             Product.ConditionId = null;
         }
-        _unitofWork!.Product.Add(Product);
 
-
-
-        Product = new Product(); // Ensure that we have a fresh product
-        Product.ListingId = ListingId;
-
+        _unitofWork.Product.Update(Product);
         _unitofWork.Commit();
         await OnProductAdded.InvokeAsync(); // Notify the parent component
+        Product = new Product(); // Ensure that we have a fresh product
+        Images = new List<RareImage>(); // fresh list of images
+        SetUpProduct();
 
     }
     private async Task CaptureAndUploadImage()
@@ -236,14 +242,15 @@
 
                 //Save the image captured in the database
                 var capturedImage = new RareImage
-                {
-                    ImageData = imageBytes,
-                    ProductId = ProductId
-                };
+                    {
+                        ImageData = imageBytes,
+                        ProductId = Product.Id,
+                    };
 
                 var imagesList = Images.ToList();
                 imagesList.Add(capturedImage);
 
+                _unitofWork.Image.Add(capturedImage);
                 Images = imagesList;
 
                 _unitofWork.Commit();
@@ -256,5 +263,3 @@
         }
     }
 }
-
-

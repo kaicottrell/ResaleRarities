@@ -37,14 +37,28 @@
             </AuthorizeView>
 
             <AuthorizeView Roles="Trader">
+
                 <Authorized>
                     <li class="nav-item">
-                        <NavLink class="nav-link text-white" href="Listings/ListingCrum">
-                             Create Listing
+                        <NavLink class="nav-link text-white" href="Listings/Index">
+                            My Listings
                         </NavLink>
                     </li>
                 </Authorized>
             </AuthorizeView>
+
+            <AuthorizeView Roles="Trader">
+                
+                <Authorized>
+                    <li class="nav-item">
+                        <NavLink class="nav-link text-white" href="Listings/ListingCrum">
+                            Create Listing
+                        </NavLink>
+                    </li>
+                </Authorized>
+            </AuthorizeView>
+
+          
 
            
 
