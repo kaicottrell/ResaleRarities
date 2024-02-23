@@ -11,8 +11,20 @@
 
 <div class="container mt-5">
 
-    @if (IsDataLoaded)
+    @if (!IsDataLoaded)
     {
+        <!-- Show a spinner while data is loading -->
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p>Loading...</p>
+        </div>
+    }
+    else
+    {
+
+
         <!-- The listing has a edit form section for all of the products that can be added - can be multiple -->
         <EditForm Model="Listing" OnValidSubmit="HandleList">
             <DataAnnotationsValidator></DataAnnotationsValidator>
@@ -24,36 +36,40 @@
                     @(Listing == null ? DateTime.Now.ToString("MM/dd/yyyy hh:mm tt") : Listing.DateTimePosted.ToString("MM/dd/yyyy hh:mm tt"))
                 </div>
                 <div class="card-body register-group">
-                    <button type="button" class="btn btn-primary" @onclick="ShowProductModal">Add Product</button>
+                    <button type="button" class="btn btn-primary" @onclick="ShowProductModal" disabled="@(!IsDataLoaded)">Add Product</button>
                     <!-- Render list of added products -->
                     <div class="row">
                         @foreach (var product in Products)
                         {
-                            <div class="col-md-4 col-12">
-                                <div class="listing-card">
-                                    @{
-                                        var frontImage = _unitofWork.Image.Get(image => image.ProductId == product.Id);
-                                        if (frontImage != null)
-                                        {
-                                            <div class="justify-content-center d-flex">
-                                                <img src="@($"data:image;base64,{Convert.ToBase64String(frontImage.ImageData)}")" alt="Product Picture" class="listing-card-image" />
-                                            </div>
+                            @if (product != null)
+                            {
+                                <div class="col-md-4 col-12">
+                                    <div class="listing-card">
+                                        @{
+                                            var frontImage = _unitofWork.Image.Get(image => image.ProductId == product.Id);
+                                            if (frontImage != null)
+                                            {
+                                                <div class="justify-content-center d-flex">
+                                                    <img src="@($"data:image;base64,{Convert.ToBase64String(frontImage.ImageData)}")" alt="Product Picture" class="listing-card-image" />
+                                                </div>
 
+                                            }
+                                            else
+                                            {
+                                                <img src="https://via.placeholder.com/150" alt="Placeholder Image" class="listing-card-image" />
+                                            }
                                         }
-                                        else
-                                        {
-                                            <img src="https://via.placeholder.com/150" alt="Placeholder Image" class="listing-card-image" />
-                                        }
-                                    }
-                                    <div class="listing-card-title text-center">@product.Name</div>
-                                    <div class="listing-card-details">
-                                        <p>Description: @product.Description</p>
-                                        <p>Condition: @product.Condition.Type</p>
-                                        <p>Category: @product.Category.Name</p>
+                                        <div class="listing-card-title text-center">@product.Name</div>
+                                        <div class="listing-card-details">
+                                            <p>Description: @product.Description</p>
+                                            <p>Condition: @(product.Condition?.Type ?? "Not Listed")</p>
+                                            <p>Category: @(product.Category?.Name ?? "Not Listed")</p>
+                                        </div>
+
                                     </div>
-
                                 </div>
-                            </div>
+                            }
+
 
                         }
                     </div>
@@ -73,8 +89,6 @@
         </EditForm>
 
     }
-  
-
 </div>
 
 @code {
@@ -95,19 +109,22 @@
     private bool IsDataLoaded { get; set; } = false; // Flag to track data loading
 
 
-    // Use OnInitializedAsync instead of OnInitialized for async operations
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        // Your existing code...
-        LoadData();
+        await LoadDataAsync();
     }
 
-    private void LoadData()
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
     {
         var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
-        var authState = customAuthStateProvider.GetAuthenticationStateAsync();
+        var authState = await customAuthStateProvider.GetAuthenticationStateAsync();
         var userName = authState.User.FindFirst(ClaimTypes.Email).Value;
-
         var user = _unitofWork.ApplicationUser.Get(u => u.Email == userName);
 
         if (!string.IsNullOrEmpty(ListingId) && _unitofWork != null)
@@ -133,7 +150,10 @@
         Products = _unitofWork!.Product.List(product => product.ListingId == Listing.Id);
 
         IsDataLoaded = true; // Set the flag to true after data is loaded
+        StateHasChanged(); // Trigger re-rendering of the component
     }
+
+
 
     private void HandleList()
     {
