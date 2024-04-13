@@ -1,0 +1,61 @@
+﻿@using Radzen
+@using ApplicationCore.Models;
+@using ApplicationCore.Models.ViewModels;
+@using ApplicationCore.Interfaces;
+@inject Infrastructure.Services.NotificationService NotificationService
+
+<RadzenCard Class="rz-my-12 rz-mx-auto p-2" Style="max-width: 420px">
+    <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
+        <RadzenImage Path="@($"data:image;base64,{Convert.ToBase64String(image.ImageData)}")" Width="100px" Height="100px" />
+        <RadzenStack Gap="0">
+            <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">Product</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@Product?.Name</b></RadzenText>
+            <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-4 rz-mb-0">Reason</RadzenText>
+            <RadzenText TextStyle="TextStyle.Body1"><b>@Reason</b></RadzenText>
+        </RadzenStack>
+    </RadzenStack>
+    <RadzenCard class="rz-background-color-primary-light rz-shadow-0 rz-border-radius-0 rz-p-8 m-2" style="margin: 1rem calc(-1 * var(--rz-card-padding));">
+        <RadzenText TextStyle="TextStyle.H6" class="rz-color-on-primary-light"><strong>Offer Information</strong></RadzenText>
+        <RadzenRow RowGap="0">
+            <RadzenColumn SizeSM="4">
+                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Category</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@Product?.Category?.Name</b></RadzenText>
+            </RadzenColumn>
+            <RadzenColumn SizeSM="8">
+                <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Condition</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@Product?.Condition?.Type</b></RadzenText>
+            </RadzenColumn>
+        </RadzenRow>
+        <RadzenText TextStyle="TextStyle.Overline" class="rz-color-on-primary-light rz-display-flex rz-mt-4 rz-mb-0">Offer Amount</RadzenText>
+        <RadzenText TextStyle="TextStyle.Body1" class="rz-color-on-primary-light"><b>@String.Format(new System.Globalization.CultureInfo("en-US"), "{0:C}", @OfferAmount)</b></RadzenText>
+    </RadzenCard>
+    <div class="text-center">
+        <RadzenButton Shade="Shade.Lighter" Text="Decline Offer" ButtonStyle="ButtonStyle.Danger" />
+        <RadzenButton Shade="Shade.Lighter" Click="@AcceptOffer" Text="Accept Offer" ButtonStyle="ButtonStyle.Primary" />
+    </div>
+
+</RadzenCard>
+
+@code {
+    [Parameter]
+    public string ProductId { get; set; }
+    [Parameter]
+    public double OfferAmount { get; set; }
+    [Parameter]
+    public string Reason { get; set; }
+    public Product Product { get; set; }
+
+    private RareImage image { get; set; }
+    [Inject]
+    private IUnitofWork? _unitOfWork { get; set; }
+
+    protected override void OnInitialized()
+    {
+        Product = _unitOfWork.Product.Get(_ => _.Id == ProductId, includes: "Category,Condition");
+        image = _unitOfWork.Image.Get(image => image.ProductId == ProductId);
+    }
+    private void AcceptOffer()
+    {
+        
+    }
+}

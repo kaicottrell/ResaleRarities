@@ -1,0 +1,149 @@
+﻿@page "/Listings/ListingCrum"
+@page "/Listings/ListingCrum/{ListingId?}"
+@using ApplicationCore.Models
+@using ApplicationCore.Interfaces
+@using ResaleRarities.Pages.Products
+@using Infrastructure.Utility;
+@using Infrastructure.Services;
+@using Microsoft.AspNetCore.Components.Authorization
+@using ResaleRarities.Authentication
+@using System.Security.Claims
+@using ApplicationCore.Models.ViewModels;
+@using Radzen
+@inject Infrastructure.Services.NotificationService NotificationService
+@inject AuthenticationStateProvider authStateProvider
+
+<div class="container mt-5">
+
+    @if (!IsDataLoaded)
+    {
+        <!-- Show a spinner while data is loading -->
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="sr-only">Loading...</span>
+            </div>
+            <p>Loading...</p>
+        </div>
+    }
+    else if (ShowOffer)
+    {
+        @try
+        {
+            @foreach (var offeredToProduct in OfferedProducts)
+            {
+                <OfferComponent ProductId="@offeredToProduct.ProductId" OfferAmount="@offeredToProduct.OfferAmount" Reason="@offeredToProduct.Reason"/>
+            }
+        }
+        catch (Exception ex)
+        {
+            // Handle the exception gracefully, such as logging or displaying an error message
+            <p>An error occurred while rendering OfferComponent: @ex.Message</p>
+        }
+
+    }
+    else
+    {
+       
+
+        <!-- The listing has a edit form section for all of the products that can be added - can be multiple -->
+        <EditForm Model="Listing" OnValidSubmit="HandleList">
+            <DataAnnotationsValidator></DataAnnotationsValidator>
+            <div class="card register-card" >
+                <div class="card-header register-header-footer">
+                    @(ListingId == null ? "Create" : "View") Listing -@(Listing.Title == null ? "" : Listing.Title) 
+                    @(Listing == null ? DateTime.Now.ToString("MM/dd/yyyy hh:mm tt") : Listing.DateTimePosted.ToString("MM/dd/yyyy hh:mm tt"))
+                </div>
+                <div class="card-body register-group">
+                    <div class="form-group row ">
+                        <div class="col-md-4">
+                            <label for="listingTitle">Title</label>
+                            <input id="listingTitle" class="form-control" @bind="Listing.Title" />
+                            <ValidationMessage For="@(() => Listing.Title)" />
+                        </div>
+                   
+                        <div class="col-md-4">
+                            <label for="listingTypeSelector">Listing Type </label>
+                            <select id="listingTypeSelector" class="form-control " @bind="SelectedListingOptionId">
+                                @foreach (var option in ListingOptions)
+                                {
+                                    <option value="@option.Value"> @option.Key </option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                 
+                  
+                    <button type="button" class="btn btn-primary" @onclick="()=> ShowProductModal()" disabled="@(!IsDataLoaded)">Add Product</button>
+                    <!-- Render list of added products -->
+                    <div class="row d-flex justify-content-center card-grid">
+                        @foreach (var product in Products)
+                        {
+                            @if (product != null)
+                            {
+                                <div class="col-md-4 col-12 d-flex align-items-stretch">
+                                    <div class="listing-card enlarge-animation " @onclick="()=> ShowProductModal(product.Id)">
+                                            @{
+                                                var frontImage = _unitofWork.Image.Get(image => image.ProductId == product.Id);
+                                                if (frontImage != null)
+                                                {
+                                                    <div class="justify-content-center d-flex">
+                                                        <img src="@($"data:image;base64,{Convert.ToBase64String(frontImage.ImageData)}")" alt="Product Picture" class="listing-card-image" />
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <img src="https://via.placeholder.com/150" alt="Placeholder Image" class="listing-card-image" />
+                                                }
+                                            }
+                                            <div class="listing-card-title text-center">@product.Name</div>
+                                            <div class="listing-card-details">
+                                                <p>Description: @product.Description</p>
+                                                <p>Condition: @(product.Condition?.Type ?? "Not Listed")</p>
+                                                <p>Category: @(product.Category?.Name ?? "Not Listed")</p>
+                                            </div>
+                                        </div>
+                                    
+                                </div>
+                            }
+
+
+
+                        }
+                    </div>
+
+                </div>
+                @if (IsProductModalVisible)
+                {
+                    <div class="d-flex justify-content-center">
+                        <ProductModal ListingId="@Listing.Id" ProductId="@SelectedProductId" ClosedProductModal="HandleCloseModal" OnProductAdded="HandleProductAdded" />
+
+                    </div>
+                }
+               
+                <div class="card-footer register-footer">
+                    <div class="button-group">
+                       
+                        @if(Products != null && Products.Count() > 0){
+                            <button type="button" @onclick="DeleteListingAndExit" class="btn btn-secondary">Delete</button> @* how to go back to previous page?*@
+                            <button type="button" @onclick="ExitListing" class="btn btn-secondary">Save</button>
+                            @if(Listing.ListingStatus.StatusDescription == SD.LSDraft){
+                                <button type="submit" class="btn btn-primary">Post Listing</button>
+                            }
+                            else
+                            {
+                                <button type="button" @onclick="RemoveListing" class="btn btn-primary">Remove Listing</button>
+                            }
+                        }
+                        else
+                        {
+                            <button type="button" @onclick="ExitListing" class="btn btn-secondary">Cancel</button>
+                        }
+                    </div>
+                    
+                </div>
+            </div>
+        </EditForm>
+    }
+</div>
+
+

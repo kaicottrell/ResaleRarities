@@ -1,0 +1,16 @@
+/* Navbar Styles */
+.navbar {
+    border-width: 4px;
+    border-style: solid;
+    border-image: linear-gradient(to right, #ff8c00, #ff9933) 1;
+    background: linear-gradient(to right, #ff8c00, #ff9933);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 8px 6px -6px #999;
+    transform-style: preserve-3d;
+    transition: background 1s ease;
+}
+
+
+

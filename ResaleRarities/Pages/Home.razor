@@ -1,0 +1,115 @@
+﻿@page "/"
+@using ApplicationCore.Models
+@using ApplicationCore.Interfaces
+@using Microsoft.AspNetCore.Components
+@using Infrastructure.Utility
+@using ResaleRarities.Pages.Products
+@inject Radzen.NotificationService NotificationService
+
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Home</PageTitle>
+
+@if (!IsProductBeingViewed)
+{
+    <div class="row">
+        <div class="col-md-2"> </div>
+        <div class="col-12 col-md-8 d-flex justify-content-md-center">
+            <h3 class="">Current Listings</h3>
+        </div>
+        <div class="col-12 col-md-2 d-flex align-items-center">
+            <input class="mr-2 form-control" type="text" @bind="@searchTerm" placeholder="Search" />
+            <RadzenButton class="btn btn-light" Click="@FilterProducts" Text="Go" ButtonStyle="Radzen.ButtonStyle.Info" />
+        </div>
+    </div>
+    @if (FilteredProductListings.Any())
+    {
+        <div class="container">
+            <!-- Listing Cards Section -->
+            <div class="row">
+                <!-- Loop through filtered product listings -->
+                @foreach (var product in FilteredProductListings)
+                {
+                    <!-- Display individual product card -->
+                    <div class="col-md-3 col-12 d-flex align-items-stretch ">
+                        <div class="listing-card enlarge-animation w-100" @onclick="()=> ViewProduct(product.Id)">
+                            <!-- Display product image -->
+                            @{
+                                var frontImage = _unitofWork.Image.Get(image => image.ProductId == product.Id);
+                                if (frontImage != null)
+                                {
+                                    <div class="justify-content-center d-flex">
+                                        <img src="@($"data:image;base64,{Convert.ToBase64String(frontImage.ImageData)}")" alt="Product Picture" class="listing-card-image" style="width: 200px; height: 200px;" />
+                                    </div>
+                                }
+                                else
+                                {
+                                    <img src="https://via.placeholder.com/150" alt="Placeholder Image" class="listing-card-image" />
+                                }
+                            }
+                            <!-- Display product details -->
+                            <div class="text-center">@product.Name</div>
+                            <p>Condition: @(product.Condition?.Type ?? "Not Listed")</p>
+                            <p>Category: @(product.Category?.Name ?? "Not Listed")</p>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Display error message when no results are found -->
+        <div class="alert alert-danger" role="alert">
+            <span class="oi oi-warning"></span> No results found.
+        </div>
+    }
+}
+else
+{
+    <ViewProduct ClosedProductView="HandleCloseView" ViewedProduct="@ViewedProduct" />
+}
+
+@code
+{
+    IEnumerable<Product> ProductListings = new List<Product>();
+    IEnumerable<Product> FilteredProductListings = new List<Product>(); // Filtered product listings
+    string searchTerm = ""; // Search term
+    [Inject]
+    private IUnitofWork? _unitofWork { get; set; }
+    [Inject]
+    private NavigationManager Navigation { get; set; } // Inject NavigationManager
+    private bool IsProductBeingViewed { get; set; } = false;
+    //ViewedProduct
+    private Product? ViewedProduct { get; set; }
+
+    protected override void OnInitialized()
+    {
+        ProductListings = _unitofWork!.Product.List(pl => pl.Listing.ListingStatus.StatusDescription == SD.LSPostedForBid, includes: "Listing.ListingStatus,Category,Condition");
+        FilteredProductListings = ProductListings; // Initialize filtered list with all products
+        ViewedProduct = new Product();
+    }
+
+    private void ViewProduct(string Id)
+    {
+        ViewedProduct = _unitofWork.Product.Get(p => p.Id == Id);
+        IsProductBeingViewed = true;
+        StateHasChanged(); // Trigger re-rendering of the component
+    }
+
+    private void HandleCloseView()
+    {
+        IsProductBeingViewed = false;
+        ViewedProduct = new Product();
+        StateHasChanged(); // Trigger re-rendering of the component
+    }
+
+    private async Task FilterProducts()
+    {
+        FilteredProductListings = ProductListings.Where(product =>
+            product.Name.ToLower().Contains(searchTerm.ToLower()) ||
+            product.Condition?.Type.ToLower().Contains(searchTerm.ToLower()) == true ||
+            product.Category?.Name.ToLower().Contains(searchTerm.ToLower()) == true);
+
+    }
+}

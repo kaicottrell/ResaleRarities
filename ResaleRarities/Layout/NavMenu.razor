@@ -1,0 +1,129 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+@using ResaleRarities.Authentication
+@inject AuthenticationStateProvider authStateProvider
+
+<div class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="mx-2">
+        <a class="navbar-brand" href="">ResaleRarities</a>
+    </div>
+
+    <button class="navbar-toggler" @onclick="ToggleNavMenu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" style="@($"display: {(isNavOpen ? "block" : "none")}")">
+        <div class="navbar-nav">
+            <AuthorizeView>
+                <Authorized>
+                    <li class="nav-item">
+                        <span class="nav-link me-3 text-white">Hi, @context.User.Identity.Name</span>
+                    </li>
+                </Authorized>
+                <NotAuthorized>
+                    <li class="nav-item">
+                        <span class="nav-link me-3 text-white">Welcome Guest</span>
+                    </li>
+                </NotAuthorized>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Admin">
+                <Authorized>
+                    <li class="nav-item">
+                        <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                            Manage User
+                        </NavLink>
+                    </li>
+                </Authorized>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Trader">
+
+                <Authorized>
+                    <li class="nav-item">
+                        <NavLink class="nav-link text-white" href="Listings/Index">
+                            My Listings
+                        </NavLink>
+                    </li>
+                </Authorized>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Trader">
+                
+                <Authorized>
+                    <li class="nav-item">
+                        <NavLink class="nav-link text-white" href="Listings/ListingCrum">
+                            Create Listing
+                        </NavLink>
+                    </li>
+                </Authorized>
+            </AuthorizeView>
+
+          
+
+           
+
+            
+        </div>
+            
+        <ul class="navbar-nav ms-auto pe-2">
+            <AuthorizeView Roles="Trader">
+                <Authorized>
+                    <li class="nav-item">
+                        <NavLink class="nav-link  text-white" href="update-profile">
+                             Seller History
+                        </NavLink>
+                    </li>
+                </Authorized>
+            </AuthorizeView>
+
+            <AuthorizeView Roles="Trader">
+                <Authorized>
+                    <li class="nav-item">
+                        <NavLink class="nav-link  text-white" href="update-profile">
+                             Order History
+                        </NavLink>
+                    </li>
+                </Authorized>
+            </AuthorizeView>
+
+            <AuthorizeView>
+                <Authorized>
+                    <li class="nav-item">
+                        <NavLink class="nav-link  text-white" style="cursor:pointer" @onclick="LogoutAsync">
+                            Logout
+                        </NavLink>
+                    </li>
+                </Authorized>
+                <NotAuthorized>
+                    <li class="nav-item">
+                        <NavLink class="nav-link text-white" href="login">
+                            Login
+                        </NavLink>
+                    </li>
+                    <li class="nav-item text-white">
+                        <NavLink class="nav-link text-white" href="register">
+                            Register
+                        </NavLink>
+                    </li>
+                </NotAuthorized>
+            </AuthorizeView>
+        </ul>
+    </div>
+</div>
+
+
+
+@code {
+    private bool isNavOpen = false;
+
+    private void ToggleNavMenu()
+    {
+        isNavOpen = !isNavOpen;
+    }
+
+    public async Task LogoutAsync()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
+        await customAuthStateProvider.UpdateAuthenticationState(new UserSession());
+    }
+}
