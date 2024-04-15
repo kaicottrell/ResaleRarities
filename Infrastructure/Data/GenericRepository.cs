@@ -28,10 +28,15 @@ namespace Infrastructure.Data
 			_dbContext.Set<T>().Add(entity);
 			_dbContext.SaveChanges();
 		}
-		#endregion
+        public async Task AddAsync(T entity)
+        {
+            await _dbContext.Set<T>().AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
+        }
+        #endregion
 
-		#region Delete Methods
-		public void Delete(T entity)
+        #region Delete Methods
+        public void Delete(T entity)
 		{
 			_dbContext.Set<T>().Remove(entity);
 			_dbContext.SaveChanges();
