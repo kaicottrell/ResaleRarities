@@ -18,7 +18,7 @@ namespace ResaleRarities.Pages.Services
         public AutomatedOfferService(IConfiguration config)
         {
             _config = config;
-            _openAiApi = new OpenAIAPI(_config["OpenAiKey:Default"]); 
+            _openAiApi = new OpenAIAPI("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"); 
         }
 
         Product ProductObj = new Product();

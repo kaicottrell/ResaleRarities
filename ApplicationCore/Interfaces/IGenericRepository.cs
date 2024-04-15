@@ -52,11 +52,13 @@ namespace ApplicationCore.Interfaces
 		#region IGenericRepository Add Method
 		//Add (Insert) a new record instance
 		void Add(T entity);
-		#endregion
+        Task AddAsync(T entity);
 
-		#region IGenericRepository Delete Methods
-		//Delete (Remove) a single record instance
-		void Delete(T entity);
+        #endregion
+
+        #region IGenericRepository Delete Methods
+        //Delete (Remove) a single record instance
+        void Delete(T entity);
 
 		//Delete (Remove) multiple record instances
 		void Delete(IEnumerable<T> entities);

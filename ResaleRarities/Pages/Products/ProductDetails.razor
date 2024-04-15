@@ -1,4 +1,6 @@
-﻿@using ApplicationCore.Models
+﻿@page "/ProductDetails/{ProductId}"
+
+@using ApplicationCore.Models
 @using ApplicationCore.Interfaces
 @using ResaleRarities.Pages.Products
 @using Infrastructure.Utility;
@@ -57,6 +59,10 @@ else
 }
 
 @code {
+
+    [Parameter]
+    public string? ProductId { get; set; }
+
     [Inject]
     private IUnitofWork? _unitofWork { get; set; }
     private Product _productObj { get; set; }
@@ -65,25 +71,14 @@ else
     private string selectedSlide { get; set; } = "";
     private bool IsDataLoaded { get; set; } = false;
 
-    [Parameter]
-    public Product ViewedProduct
-    {
-        get => _productObj;
-        set
-        {
-            if (value == null)
-            {
-                throw new ArgumentNullException(nameof(ViewedProduct), "ProductObj parameter is required.");
-            }
-            _productObj = value;
-        }
-    }
+    public Product ViewedProduct { get; set; } = new Product();
     [Parameter]
     public EventCallback ClosedProductView { get; set; }
 
     protected async override void OnInitialized()
     {
         IsDataLoaded = false;
+        ViewedProduct = _unitofWork.Product.Get(p => p.Id == ProductId);
         //Establish if the user is the creator of the Product Listing
         var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
         var authState = await customAuthStateProvider.GetAuthenticationStateAsync();

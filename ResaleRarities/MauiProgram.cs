@@ -47,7 +47,7 @@ namespace ResaleRarities
                 builder.Services.AddMauiBlazorWebView();
 
                 // Read the connection string directly from appsettings.json
-                string? connectionString = config["ConnectionStrings:Default"];
+                string? connectionString = "Data Source=resalerare.database.windows.net,1433;Initial Catalog=ResaleRarityV2;User Id=resalerarityadmin;Password=rrforweber7!;Encrypt=True;MultipleActiveResultSets=true";
 
                 if (connectionString == null)
                 {

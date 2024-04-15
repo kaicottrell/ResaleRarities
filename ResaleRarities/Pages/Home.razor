@@ -9,12 +9,26 @@
 @inject IJSRuntime JsRuntime
 
 <PageTitle>Home</PageTitle>
-
-@if (!IsProductBeingViewed)
+@if (IsLoading)
+{
+    <div class="text-center">
+        <div class="spinner-border" role="status">
+            <span class="sr-only">Loading...</span>
+        </div>
+        <p>Loading...</p>
+    </div>
+}
+else if (!IsProductBeingViewed)
 {
     <div class="row">
-        <div class="col-md-2"> </div>
-        <div class="col-12 col-md-8 d-flex justify-content-md-center">
+        <div class="col-md-2">
+            <RadzenDropDown @bind-Value=@SelectedCategory Data=@ItemCategories Style="width: 100%; max-width: 400px;" Name="CategoryDropdown" AllowClear=true Placeholder="Select Category" />
+        </div>
+        <div class="col-md-2">
+            <RadzenDropDown @bind-Value=@SelectedCondition Data=@ItemConditions Style="width: 100%; max-width: 400px;" Name="ConditionDropdown" AllowClear=true Placeholder="Select Condition" />
+
+        </div>
+        <div class="col-12 col-md-6 d-flex justify-content-md-center">
             <h3 class="">Current Listings</h3>
         </div>
         <div class="col-12 col-md-2 d-flex align-items-center">
@@ -82,34 +96,70 @@ else
     private bool IsProductBeingViewed { get; set; } = false;
     //ViewedProduct
     private Product? ViewedProduct { get; set; }
+    private bool IsLoading { get; set; } = true;
+    //Dropdown
+    public string SelectedCategory { get; set; } = string.Empty;
+    public IEnumerable<string> ItemCategories { get; set; } = new List<string>();
+    private string SelectedCondition { get; set; } = string.Empty;
+    public IEnumerable<string> ItemConditions { get; set; } = new List<string>();
+
 
     protected override void OnInitialized()
     {
         ProductListings = _unitofWork!.Product.List(pl => pl.Listing.ListingStatus.StatusDescription == SD.LSPostedForBid, includes: "Listing.ListingStatus,Category,Condition");
+
+        ItemCategories = _unitofWork.Category.List().Select(c => c.Name);
+        ItemConditions = _unitofWork.Condition.List().Select(c => c.Type);
+
         FilteredProductListings = ProductListings; // Initialize filtered list with all products
         ViewedProduct = new Product();
+        IsLoading = false;
+        StateHasChanged();
     }
 
     private void ViewProduct(string Id)
     {
         ViewedProduct = _unitofWork.Product.Get(p => p.Id == Id);
         IsProductBeingViewed = true;
-        StateHasChanged(); // Trigger re-rendering of the component
     }
 
     private void HandleCloseView()
     {
+        IsLoading = true;
+        StateHasChanged();
         IsProductBeingViewed = false;
         ViewedProduct = new Product();
-        StateHasChanged(); // Trigger re-rendering of the component
+        IsLoading = false;
+        StateHasChanged();
     }
 
-    private async Task FilterProducts()
+    private void FilterProducts()
     {
+        IsLoading = true;
+        StateHasChanged();
         FilteredProductListings = ProductListings.Where(product =>
             product.Name.ToLower().Contains(searchTerm.ToLower()) ||
             product.Condition?.Type.ToLower().Contains(searchTerm.ToLower()) == true ||
             product.Category?.Name.ToLower().Contains(searchTerm.ToLower()) == true);
 
+        if (!String.IsNullOrEmpty(SelectedCategory))
+        {
+            FilteredProductListings = FilteredProductListings.Where(product =>
+                product.Category != null &&
+                product.Category.Name.Equals(SelectedCategory)
+            );
+        }
+        if (!String.IsNullOrEmpty(SelectedCondition))
+        {
+            FilteredProductListings = FilteredProductListings.Where(product =>
+                product.Condition != null &&
+                product.Condition.Type.Equals(SelectedCondition)
+            );
+        }
+
+        IsLoading = false;
+        StateHasChanged();
     }
+
+
 }

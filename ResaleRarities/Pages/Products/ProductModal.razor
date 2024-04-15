@@ -275,7 +275,7 @@
                 var imagesList = Images.ToList();
                 imagesList.Add(capturedImage);
 
-                _unitOfWork.Image.Add(capturedImage);
+                _unitOfWork.Image.AddAsync(capturedImage);
                 Images = imagesList;
 
                 selectedSlide = Images.FirstOrDefault()?.Id ?? "";
