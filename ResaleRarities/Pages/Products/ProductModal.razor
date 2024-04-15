@@ -136,7 +136,7 @@
     private void LoadData()
     {
         IsDataLoaded = false;
-
+        StateHasChanged();
         // Load categories and conditions
         CategoryList = _unitOfWork.Category.List();
         ConditionList = _unitOfWork.Condition.List();
@@ -151,6 +151,7 @@
         }
 
         IsDataLoaded = true;
+        StateHasChanged();
     }
 
     private void LoadExistingProduct()
