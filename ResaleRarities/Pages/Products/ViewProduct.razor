@@ -87,12 +87,15 @@ else
         //Establish if the user is the creator of the Product Listing
         var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
         var authState = await customAuthStateProvider.GetAuthenticationStateAsync();
-        var userName = authState.User.FindFirst(ClaimTypes.Email).Value;
-        var user = _unitofWork.ApplicationUser.Get(u => u.Email == userName);
+        if (authState.User.Identity.IsAuthenticated)
+        {
+            var userName = authState.User.FindFirst(ClaimTypes.Email).Value;
+            var user = _unitofWork.ApplicationUser.Get(u => u.Email == userName);
 
-        var associatedListing = _unitofWork.Listing.Get(listing => listing.Id == _productObj.ListingId, false, "ApplicationUser");
-        IsCreator = associatedListing.ApplicationUserId == user.Id;
-
+            var associatedListing = _unitofWork.Listing.Get(listing => listing.Id == _productObj.ListingId, false, "ApplicationUser");
+            IsCreator = associatedListing.ApplicationUserId == user.Id;
+        }
+    
         //Gather the images associated with the product
         Images = _unitofWork.Image.List(image => image.ProductId == _productObj.Id);
 
