@@ -14,6 +14,7 @@ namespace Infrastructure.Utility
         public const string LSPostedForBid = "Posted for bid";
         public const string LSDeclinedAutomatedOffer = "Declined automated offer";
         public const string LSProcessingAutomatedOffer = "Submitted for automated offer";
+        public const string LSAcceptedAutomaticOffer = "Accepted Automatic Offer";
         public const string LSPostedAutomatedOffer = "Automated offer made to user";
         public const string LSNoBidsMade= "No bids made";
 
