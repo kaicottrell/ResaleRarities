@@ -1,0 +1,36 @@
+﻿@using Radzen
+@using ApplicationCore.Models;
+@using ApplicationCore.Models.ViewModels;
+@using ApplicationCore.Interfaces;
+@using Infrastructure.Utility;
+
+<div Class="rz-p-0 rz-p-md-12">
+    <RadzenCard Variant="Variant.Filled" Class="rz-my-12 rz-mx-auto" Style="max-width: 420px">
+        <RadzenStack Orientation="Orientation.Horizontal" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
+            <RadzenStack Gap="0">
+                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">Thank you!</RadzenText>
+                <RadzenText TextStyle="TextStyle.Body1"><b>@Message</b></RadzenText>
+            </RadzenStack>
+        </RadzenStack>
+    </RadzenCard>
+</div>
+
+@code {
+    [Parameter]
+    public string AcceptDecline { get; set; } = string.Empty;
+    [Parameter]
+    public double? Compensation { get; set; }
+
+    string Message { get; set; } = string.Empty;
+
+    protected override void OnInitialized()
+    {
+        if (AcceptDecline.ToLower() == "accept")
+        {
+            Message = $"Confirmed! Your Listing has been accepted! You can expect to see your compensation of ${Compensation} in 7-14 days";
+        } else{
+            Message = "Your offer has been successfully declined, we appreciate your consideration";
+        }
+    }
+
+}
