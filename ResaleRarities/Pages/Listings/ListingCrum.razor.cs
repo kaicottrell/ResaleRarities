@@ -50,6 +50,7 @@ namespace ResaleRarities.Pages.Listings
         private async Task LoadDataAsync()
         {
             IsDataLoaded = false;
+            ShowOffer = false;
             var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
             var authState = await customAuthStateProvider.GetAuthenticationStateAsync();
             var userName = authState.User.FindFirst(ClaimTypes.Email).Value;
@@ -82,8 +83,17 @@ namespace ResaleRarities.Pages.Listings
             //Get the listing status id associated with submitting for an automatted offer
             var automatedLSId = _unitofWork.ListingStatus.Get(ls => ls.StatusDescription == SD.LSProcessingAutomatedOffer).Id;
 
-            ListingOptions.Add("Submit for Online Bid", bidLSId);
-            ListingOptions.Add("Submit for Automated Offer", automatedLSId);
+            if (!ListingOptions.ContainsKey("Submit for Online Bid"))
+            {
+                ListingOptions.Add("Submit for Online Bid", bidLSId);
+            }
+
+            if (!ListingOptions.ContainsKey("Submit for Automated Offer"))
+            {
+                ListingOptions.Add("Submit for Automated Offer", automatedLSId);
+            }
+
+
 
 
             IsDataLoaded = true; // Set the flag to true after data is loaded
@@ -111,27 +121,34 @@ namespace ResaleRarities.Pages.Listings
 
                 _unitofWork.Listing.Update(Listing);
                 _unitofWork.Commit();
-                NotificationService.ShowNotification("SUCCESS: Your Listing Has Been Posted", "success");
 
-                try
+                if (Listing.ListingStatus.StatusDescription == SD.LSProcessingAutomatedOffer)
                 {
-                    double totalOffer = 0;
-                    foreach (var Product in Products)
+                    ShowOffer = true;
+                    try
                     {
-                        var offerProduct = await OfferService.GetOfferWithReasonTest(Product);
-                        double offer = offerProduct.OfferAmount;
-                        OfferedProducts.Add(offerProduct);
-                        totalOffer += offer;
+                        double totalOffer = 0;
+                        foreach (var Product in Products)
+                        {
+                            var offerProduct = await OfferService.GetOfferWithReasonTest(Product);
+                            double offer = offerProduct.OfferAmount;
+                            OfferedProducts.Add(offerProduct);
+                            totalOffer += offer;
+                        }
+                        Listing.Compensation = (decimal)totalOffer;
                     }
-                    Listing.Compensation = (decimal)totalOffer;
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"An error occurred while adding offers to OfferedProducts: {ex.Message}");
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    Console.WriteLine($"An error occurred while adding offers to OfferedProducts: {ex.Message}");
+                    NotificationService.ShowNotification("SUCCESS: Your Listing Has Been Posted", "success");
                 }
+
                 _unitofWork.Listing.Update(Listing);
                 _unitofWork.Commit();
-                ShowOffer = true;
                 StateHasChanged();
                 // Navigation.NavigateTo("/");
             }
