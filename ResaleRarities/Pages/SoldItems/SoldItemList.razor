@@ -1,0 +1,49 @@
+﻿@page "/SoldItemsList"
+@using Radzen
+@using ApplicationCore.Models;
+@using ApplicationCore.Interfaces;
+@using Infrastructure.Utility;
+@using ResaleRarities.Components;
+@using ResaleRarities.Authentication;
+@using System.Security.Claims;
+@using Microsoft.AspNetCore.Components.Authorization
+@inject AuthenticationStateProvider authStateProvider
+
+@if (SoldProductList != null && SoldProductList.Count() > 0)
+{
+    <div class="row d-flex justify-content-center">
+        @foreach (var soldProduct in SoldProductList)
+        {
+            <div class="col-lg-3">
+                <AcceptedOfferComponent ProductId="@soldProduct.Id" />
+            </div>
+        }
+    </div>
+   
+}
+else
+{
+    <!-- Display error message when no results are found -->
+    <div class="alert alert-danger" role="alert">
+        <span class="oi oi-warning"></span> No Listings Sold
+    </div>
+}
+
+@code {
+    private IEnumerable<Product> SoldProductList = new List<Product>();
+
+    [Inject]
+    private IUnitofWork? _unitOfWork { get; set; }
+    protected async override Task OnInitializedAsync()
+    {
+        var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
+        var authState = await customAuthStateProvider.GetAuthenticationStateAsync();
+        var userName = authState.User.FindFirst(ClaimTypes.Email).Value;
+        //TODO: Add check for if the User.IsIdentified
+        var user = _unitOfWork.ApplicationUser.Get(u => u.Email == userName);
+
+
+        SoldProductList = _unitOfWork.Product.List(p => p.Listing.ApplicationUserId == user.Id && p.Listing.ListingStatus.StatusDescription == SD.LSAcceptedAutomaticOffer, includes: "Category,Condition,Listing");
+
+    }
+}
