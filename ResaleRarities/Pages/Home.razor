@@ -22,11 +22,12 @@ else if (!IsProductBeingViewed)
 {
     <div class="row">
         <div class="col-md-2">
+            <RadzenLabel Text="Select Category" Component="CategoryDropdown" Style="margin-right: 8px; vertical-align: middle;" />
             <RadzenDropDown @bind-Value=@SelectedCategory Data=@ItemCategories Style="width: 100%; max-width: 400px;" Name="CategoryDropdown" AllowClear=true Placeholder="Select Category" />
         </div>
         <div class="col-md-2">
+            <RadzenLabel Text="Select Condition" Component="ConditionDropdown" Style="margin-right: 8px; vertical-align: middle;" />
             <RadzenDropDown @bind-Value=@SelectedCondition Data=@ItemConditions Style="width: 100%; max-width: 400px;" Name="ConditionDropdown" AllowClear=true Placeholder="Select Condition" />
-
         </div>
         <div class="col-12 col-md-6 d-flex justify-content-md-center">
             <h3 class="">Current Listings</h3>
