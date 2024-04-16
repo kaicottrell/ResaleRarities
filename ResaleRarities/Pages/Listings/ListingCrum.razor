@@ -121,24 +121,34 @@
                 }
                
                 <div class="card-footer register-footer">
-                    <div class="button-group">
-                       
-                        @if(Products != null && Products.Count() > 0){
-                            <button type="button" @onclick="DeleteListingAndExit" class="btn btn-secondary">Delete</button> @* how to go back to previous page?*@
-                            <button type="button" @onclick="ExitListing" class="btn btn-secondary">Save</button>
-                            @if(Listing.ListingStatus.StatusDescription == SD.LSDraft){
-                                <button type="submit" class="btn btn-primary">Post Listing</button>
-                            }
-                            else
-                            {
-                                <button type="button" @onclick="RemoveListing" class="btn btn-primary">Remove Listing</button>
-                            }
-                        }
-                        else
+                    @{
+                        //Offers cannot be changed once declined or accepted
+                        if (Listing.ListingStatus.StatusDescription != SD.LSAcceptedAutomaticOffer && Listing.ListingStatus.StatusDescription != SD.LSDeclinedAutomatedOffer)
                         {
-                            <button type="button" @onclick="ExitListing" class="btn btn-secondary">Cancel</button>
+                            <div class="button-group">
+
+                                @if (Products != null && Products.Count() > 0)
+                                {
+                                    <button type="button" @onclick="DeleteListingAndExit" class="btn btn-secondary">Delete</button> @* how to go back to previous page?*@
+                                    <button type="button" @onclick="ExitListing" class="btn btn-secondary">Save</button>
+                                    @if (Listing.ListingStatus.StatusDescription == SD.LSDraft)
+                                    {
+                                        <button type="submit" class="btn btn-primary">Post Listing</button>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" @onclick="RemoveListing" class="btn btn-primary">Remove Listing</button>
+                                    }
+                                }
+                                else
+                                {
+                                    <button type="button" @onclick="ExitListing" class="btn btn-secondary">Cancel</button>
+                                }
+                            </div>
                         }
-                    </div>
+                    }
+                    
+                  
                     
                 </div>
             </div>
