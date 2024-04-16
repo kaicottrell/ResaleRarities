@@ -53,8 +53,8 @@
         overlayClass = "show-overlay"; // Show the overlay
         StateHasChanged();
 
-        // Hide the notification after 3 seconds
-        await Task.Delay(4000);
+        // Hide the notification after 2 seconds
+        await Task.Delay(2000);
 
         notificationClass = $"{notificationClass} fade-out"; // Add fade-out class to trigger the animation
         StateHasChanged();
