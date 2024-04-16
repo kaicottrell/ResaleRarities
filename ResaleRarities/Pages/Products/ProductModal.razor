@@ -220,7 +220,7 @@
         {
             try
             {
-                FileResult myPhoto = await MediaPicker.Default.CapturePhotoAsync();
+                FileResult myPhoto = await MediaPicker.Default.PickPhotoAsync();
                 RareImage convertedPhoto = await GetConvertedPhoto(myPhoto);
                 await SavePhoto(convertedPhoto);
                 ClosePictureOptions();
