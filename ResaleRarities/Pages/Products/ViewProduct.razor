@@ -17,7 +17,7 @@
     <div class="container d-flex justify-content-center">
         <div class="listing-card col-12 col-md-9">
             <div class="d-flex justify-content-center">
-                <button class="close-button" @onclick="CloseProductView">X</button> <!-- Close button -->
+                <button type="button" class="close-button" @onclick="CloseProductView">X</button> <!-- Close button -->
                 @{
                     <Carousel class="m-4 " @bind-SelectedSlide="@selectedSlide" Autoplay="false" ShowIndicators="false">
                         @foreach (var image in Images)
@@ -105,7 +105,7 @@ else
     }
     private async Task CloseProductView()
     {
-        await ClosedProductView.InvokeAsync();
+        await ClosedProductView.InvokeAsync(false);
     }
 
 }

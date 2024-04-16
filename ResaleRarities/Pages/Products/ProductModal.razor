@@ -10,6 +10,8 @@
     {
         <div class="custom-modal">
             <div class="modal-content">
+                <button type="button" class="close-button" @onclick="CloseProductView">X</button> <!-- Close button -->
+
                 <EditForm Model="Product" OnValidSubmit="AddProduct">
                     <DataAnnotationsValidator></DataAnnotationsValidator>
                     <h3>@(ProductId == null ? "Add" : "Edit") Product</h3>
@@ -180,7 +182,7 @@
         }
 
         _unitOfWork.Product.Update(Product);
-        _unitOfWork.Commit();
+        await _unitOfWork.CommitAsync();
         await OnProductAdded.InvokeAsync(); // Notify the parent component
         Product = new Product(); // Ensure that we have a fresh product
         Images = new List<RareImage>(); // fresh list of images
@@ -191,9 +193,19 @@
     {
         if (MediaPicker.Default.IsCaptureSupported)
         {
-            FileResult myPhoto = await MediaPicker.Default.CapturePhotoAsync();
-            await SavePhoto(myPhoto);
-            ClosePictureOptions();
+            try
+            {
+                FileResult myPhoto = await MediaPicker.Default.CapturePhotoAsync();
+                RareImage convertedPhoto = await GetConvertedPhoto(myPhoto);
+                await SavePhoto(convertedPhoto);
+                ClosePictureOptions();
+            }
+            catch (Exception e )
+            {
+                Console.WriteLine($"An exception occurred: {e.Message}");
+
+            }
+
         }
         else
         {
@@ -206,13 +218,23 @@
         //Load photo
         if (MediaPicker.Default.IsCaptureSupported)
         {
-            FileResult myPhoto = await MediaPicker.Default.PickPhotoAsync();
-            await SavePhoto(myPhoto);
-            ClosePictureOptions();
+            try
+            {
+                FileResult myPhoto = await MediaPicker.Default.CapturePhotoAsync();
+                RareImage convertedPhoto = await GetConvertedPhoto(myPhoto);
+                await SavePhoto(convertedPhoto);
+                ClosePictureOptions();
+            }
+            catch (Exception e)
+            {
+                
+            }
+
             // Trigger a state change to update the UI
         }
         else
         {
+
             await Shell.Current.DisplayAlert("OOPS", "Your device is not supported", "Ok");
         }
     }
@@ -257,7 +279,7 @@
         ShowPictureOptionsModal = true;
     }
 
-    private async Task SavePhoto(FileResult myPhoto)
+    private async Task<RareImage> GetConvertedPhoto(FileResult myPhoto)
     {
         if (myPhoto != null)
         {
@@ -267,26 +289,39 @@
             {
                 // Save the image captured in the database
                 var capturedImage = new RareImage
-                    {
-                        ImageData = imageBytes,
-                        ProductId = Product.Id,
-                    };
+                {
+                    ImageData = imageBytes,
+                    ProductId = Product.Id,
+                };
 
-                var imagesList = Images.ToList();
-                imagesList.Add(capturedImage);
 
-                _unitOfWork.Image.AddAsync(capturedImage);
-                Images = imagesList;
-
-                selectedSlide = Images.FirstOrDefault()?.Id ?? "";
-
-                _unitOfWork.Commit();
-                // Proceed with saving the captured image in the database
+                return capturedImage;
             }
             else
             {
                 // Handle error
+                throw new Exception("ERROR: imageBytes was null");
+
             }
         }
+        throw new Exception("Photo not found");
+    }
+    private async Task CloseProductView()
+    {
+        await ClosedProductModal.InvokeAsync(false); // Hide modal
+    }
+    private async Task SavePhoto(RareImage capturedImage)
+    {
+        // Proceed with saving the captured image in the database
+
+        var imagesList = Images.ToList();
+        imagesList.Add(capturedImage);
+
+        await _unitOfWork.Image.AddAsync(capturedImage);
+        Images = imagesList;
+
+        selectedSlide = Images.FirstOrDefault()?.Id ?? "";
+
+        await _unitOfWork.CommitAsync();
     }
 }

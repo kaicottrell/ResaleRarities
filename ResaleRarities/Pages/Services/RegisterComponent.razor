@@ -6,6 +6,8 @@
 @using ApplicationCore.Models
 @using System.Net.Http.Json
 @inject NavigationManager NavManager
+@inject Infrastructure.Services.NotificationService NotificationService
+
 
 <div class="container mt-5">
     <EditForm Model="RegistrationModel" OnValidSubmit="HandleRegister">
@@ -61,7 +63,8 @@
         var readResponse = await result.Content.ReadFromJsonAsync<ServiceResponse>();
         if (readResponse.Flag)
         {
-            await Application.Current.MainPage.DisplayAlert("Success", readResponse.Message, "Ok");
+            NotificationService.ShowNotification("Registration Successful", "success");
+            await Task.Delay(2000);
             NavManager.NavigateTo("/", replace: true);
             RegistrationModel = new RegistrationModel();
         }

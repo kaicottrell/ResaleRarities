@@ -8,6 +8,8 @@
 @using System.Security.Claims
 @inject NavigationManager navigateMgr
 @inject AuthenticationStateProvider authStateProvider
+@inject Infrastructure.Services.NotificationService NotificationService
+
 
 <div class="container mt-5">
     <div class="row justify-content-center align-items-center">
@@ -57,13 +59,15 @@
 
             var customAuthStateProvider = (CustomAuthenticationStateProvider)authStateProvider;
             await customAuthStateProvider.UpdateAuthenticationState(getUserSession);
-            await Application.Current.MainPage.DisplayAlert("Info", response.Token, "Ok");
+            NotificationService.ShowNotification("Login Successful", "success");
+            await Task.Delay(2000); // 2000 milliseconds = 2 seconds
             navigateMgr.NavigateTo("/", forceLoad: true, replace: true);
+        
             LoginModel = new Login();
         }
         else
         {
-            await Application.Current.MainPage.DisplayAlert("Info", response.Message, "Ok");
+            NotificationService.ShowNotification("ERROR: Please try again", "error");
             return;
         }
     }
