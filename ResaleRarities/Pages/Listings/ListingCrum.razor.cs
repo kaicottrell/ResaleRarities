@@ -67,8 +67,8 @@ namespace ResaleRarities.Pages.Listings
                     ListingStatusId = draftLS.Id,
                     ApplicationUserId = user.Id
                 };
-                _unitofWork.Listing.Add(newListing);
-                _unitofWork.Commit();
+                await _unitofWork.Listing.AddAsync(newListing);
+                await _unitofWork.CommitAsync();
                 Listing = newListing;
             }
             else
@@ -127,7 +127,6 @@ namespace ResaleRarities.Pages.Listings
                 }
                 catch (Exception ex)
                 {
-                    // Handle the exception gracefully, such as logging or displaying an error message
                     Console.WriteLine($"An error occurred while adding offers to OfferedProducts: {ex.Message}");
                 }
                 _unitofWork.Listing.Update(Listing);
