@@ -5,12 +5,19 @@
 @using Infrastructure.Utility;
 
 <RadzenCard Class="rz-my-12 rz-mx-auto p-2" Style="max-width: 420px">
+   
+   
     <RadzenStack Orientation="Orientation.Horizontal" AlignItems="AlignItems.Center" JustifyContent="JustifyContent.Start" Gap="1rem" Class="rz-p-4">
-        <RadzenImage Path="@($"data:image;base64,{Convert.ToBase64String(image.ImageData)}")" Style="width: 100px; height: 100px; border-radius: 50%;" />
+        <div class="col-12 col-md-6">
+            <RadzenImage Path="@($"data:image;base64,{Convert.ToBase64String(image.ImageData)}")" Style="width: 100px; height: 100px; border-radius: 50%;" />
+        </div>
+        <div class="col-12 col-md-6">
         <RadzenStack AlignItems="AlignItems.Center" Gap="0">
-            <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">Product</RadzenText>
-            <RadzenText TextStyle="TextStyle.H6"><b>@Product?.Name</b></RadzenText>
+           
+                <RadzenText TextStyle="TextStyle.Overline" class="rz-display-flex rz-mt-2 rz-my-0">Product</RadzenText>
+                <RadzenText TextStyle="TextStyle.H6"><b>@Product?.Name</b></RadzenText>
         </RadzenStack>
+        </div>
     </RadzenStack>
     <RadzenCard class="rz-background-color-primary-light rz-shadow-0 rz-border-radius-0 rz-p-8 m-2" style="margin: 1rem calc(-1 * var(--rz-card-padding)); border-radius: 90%;">
         <RadzenText TextStyle="TextStyle.H6" class="rz-color-on-primary-light"><strong>Offer Information</strong></RadzenText>

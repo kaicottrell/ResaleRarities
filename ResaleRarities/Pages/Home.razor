@@ -5,6 +5,7 @@
 @using Infrastructure.Utility
 @using ResaleRarities.Pages.Products
 @inject Radzen.NotificationService NotificationService
+@using Radzen
 
 @inject IJSRuntime JsRuntime
 
@@ -20,33 +21,59 @@
 }
 else if (!IsProductBeingViewed)
 {
-    <div class="row">
-        <div class="col-md-2">
-            <RadzenLabel Text="Select Category" Component="CategoryDropdown" Style="margin-right: 8px; vertical-align: middle;" />
-            <RadzenDropDown @bind-Value=@SelectedCategory Data=@ItemCategories Style="width: 100%; max-width: 400px;" Name="CategoryDropdown" AllowClear=true Placeholder="Select Category" />
-        </div>
-        <div class="col-md-2">
-            <RadzenLabel Text="Select Condition" Component="ConditionDropdown" Style="margin-right: 8px; vertical-align: middle;" />
-            <RadzenDropDown @bind-Value=@SelectedCondition Data=@ItemConditions Style="width: 100%; max-width: 400px;" Name="ConditionDropdown" AllowClear=true Placeholder="Select Condition" />
-        </div>
-        <div class="col-12 col-md-6 d-flex justify-content-md-center">
-            <h3 class="">Current Listings</h3>
-        </div>
-        <div class="col-12 col-md-2 d-flex align-items-center">
-            <input class="mr-2 form-control" type="text" @bind="@searchTerm" placeholder="Search" />
-            <RadzenButton class="btn btn-light" Click="@FilterProducts" Text="Go" ButtonStyle="Radzen.ButtonStyle.Info" />
+    <div class="text-center">
+        <RadzenText TextStyle="TextStyle.H5">Find Rarities</RadzenText>
+    </div>
+    <div id="searchAccordion">
+        <div class="accordion custom-accordion" id="accordionSearchFilters">
+            <div class="accordion-item">
+                <h2 class="accordion-header col-12 col-sm-4 col-md-3 col-lg-2" id="searchFiltersHeading">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#searchFiltersCollapse" aria-expanded="false" aria-controls="searchFiltersCollapse">
+                        Search Filters
+                    </button>
+                </h2>
+                <div id="searchFiltersCollapse" class="accordion-collapse collapse show" aria-labelledby="searchFiltersHeading">
+                    <div class="accordion-body">
+                        <div class="row">
+
+                            <div class="col-12 col-md-1 d-flex align-items-center justify-content-md-end">
+ 
+                                <RadzenLabel Text="Category" Component="CategoryDropdown" Style="margin-right: 8px; vertical-align: middle;" />
+                            </div>
+                            <div class="col-12 col-md-3 d-flex align-items-center">
+
+                                <RadzenDropDown @bind-Value=@SelectedCategory Data=@ItemCategories Style="width: 100%; max-width: 400px;" Name="CategoryDropdown" AllowClear=true Placeholder="Select Category" />
+                            </div>
+                            <div class="col-12 col-md-1 d-flex align-items-center">
+                                <RadzenLabel Text="Condition" Component="ConditionDropdown" Style="margin-right: 8px; vertical-align: middle;" />
+                            </div>
+
+                            <div class="col-12 col-md-3 d-flex align-items-center">
+                                <RadzenDropDown @bind-Value=@SelectedCondition Data=@ItemConditions Style="width: 100%; max-width: 400px;" Name="ConditionDropdown" AllowClear=true Placeholder="Select Condition" />
+                            </div>
+                            <div class="col-12 mt-3 mt-md-0 col-md-3 d-flex align-items-center">
+                                <input class="form-control" type="text" @bind="@searchTerm" placeholder="Search" />
+                            </div>
+                            <div class="col-12 col-md-1 mt-3 mt-md-0 d-flex align-items-center justify-content-center">
+                                <RadzenButton Shade="Shade.Light" Click="@FilterProducts" Text="Go" ButtonStyle="ButtonStyle.Primary" />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
+
     @if (FilteredProductListings.Any())
     {
-        <div class="container">
             <!-- Listing Cards Section -->
-            <div class="row">
+            <div class="row justify-content-center">
                 <!-- Loop through filtered product listings -->
                 @foreach (var product in FilteredProductListings)
                 {
                     <!-- Display individual product card -->
-                    <div class="col-md-3 col-12 d-flex align-items-stretch ">
+                    <div class="col-md-3 col-12 d-flex align-items-stretch">
                         <div class="listing-card enlarge-animation w-100" @onclick="()=> ViewProduct(product.Id)">
                             <!-- Display product image -->
                             @{
@@ -70,7 +97,6 @@ else if (!IsProductBeingViewed)
                     </div>
                 }
             </div>
-        </div>
     }
     else
     {

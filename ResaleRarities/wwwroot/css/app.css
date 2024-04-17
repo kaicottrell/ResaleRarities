@@ -44,6 +44,14 @@ h1:focus {
 .validation-message {
     color: #e50000;
 }
+.custom-accordion .accordion-button {
+    background-color: #FFA766; /* Blue color */
+    color: #fff; /* White text color */
+}
+.accordion-item {
+    background-color: #f7f7f7; /* Blue color */
+    border: none;
+}
 
 #blazor-error-ui {
     background: lightyellow;
