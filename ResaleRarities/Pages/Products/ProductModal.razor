@@ -17,16 +17,19 @@
                     <h3>@(ProductId == null ? "Add" : "Edit") Product</h3>
                     <div class="form-group">
                         <label>Pictures</label>
-                        <div class="scrollable-container">
-                            <Carousel @bind-SelectedSlide="@selectedSlide" ShowIndicators="false" Autoplay="false">
-                                @foreach (var image in Images)
-                                {
-                                    <CarouselSlide Name="@image.Id">
-                                        <Image Source="@($"data:image;base64,{Convert.ToBase64String(image.ImageData)}")" Width="Width.Is100" />
-                                    </CarouselSlide>
-                                }
-                            </Carousel>
+                        <div class="d-flex justify-content-center">
+                            <div class="scrollable-container " style="Width: 250px; Height 250px;">
+                                <Carousel @bind-SelectedSlide="@selectedSlide" ShowIndicators="false" Autoplay="false">
+                                    @foreach (var image in Images)
+                                    {
+                                        <CarouselSlide Name="@image.Id">
+                                            <Image Source="@($"data:image;base64,{Convert.ToBase64String(image.ImageData)}")" Width="Width.Is100" />
+                                        </CarouselSlide>
+                                    }
+                                </Carousel>
+                            </div>
                         </div>
+                      
                         <button type="button" class="btn btn-primary" @onclick="ShowPictureOptions">Add Pictures</button>
                     </div>
 

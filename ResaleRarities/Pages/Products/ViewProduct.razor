@@ -8,8 +8,8 @@
 @using System.Security.Claims
 @using Blazorise
 @using Blazorise.Components
-
-@inject NotificationService NotificationService
+@using Radzen
+@inject Infrastructure.Services.NotificationService NotificationService
 @inject AuthenticationStateProvider authStateProvider
 
 @if (IsDataLoaded)
@@ -37,10 +37,22 @@
             <p>Condition: @(_productObj.Condition?.Type ?? "Not Listed")</p>
             <p>Category: @(_productObj.Category?.Name ?? "Not Listed")</p>
 
-            @if (!IsCreator)
-            {
-                <button type="submit" class="btn btn-primary">Place Bid</button>
-            }
+            <AuthorizeView Roles="admin">
+                <Authorized>
+                    <div class="text-center">
+                        <RadzenButton Shade="Shade.Lighter" Click="@RemoveProduct" Text="Remove Product" ButtonStyle="ButtonStyle.Danger" />
+                    </div>
+                </Authorized>
+                <NotAuthorized>
+                    @if (!IsCreator)
+                    {
+                        <button type="submit" class="btn btn-primary">Place Bid</button>
+                    }
+                </NotAuthorized>
+            </AuthorizeView>
+
+
+
         </div>
     </div>
 
@@ -64,6 +76,7 @@ else
     private bool IsCreator { get; set; } = false;
     private string selectedSlide { get; set; } = "";
     private bool IsDataLoaded { get; set; } = false;
+    private Listing AssociatedListing { get; set; } = new Listing();
 
     [Parameter]
     public Product ViewedProduct
@@ -92,8 +105,8 @@ else
             var userName = authState.User.FindFirst(ClaimTypes.Email).Value;
             var user = _unitofWork.ApplicationUser.Get(u => u.Email == userName);
 
-            var associatedListing = _unitofWork.Listing.Get(listing => listing.Id == _productObj.ListingId, false, "ApplicationUser");
-            IsCreator = associatedListing.ApplicationUserId == user.Id;
+            AssociatedListing = _unitofWork.Listing.Get(listing => listing.Id == _productObj.ListingId, false, "ApplicationUser");
+            IsCreator = AssociatedListing.ApplicationUserId == user.Id;
         }
 
         //Gather the images associated with the product
@@ -107,5 +120,18 @@ else
     {
         await ClosedProductView.InvokeAsync(false);
     }
+    private async Task RemoveProduct()
+    {
+        _unitofWork.Product.Delete(_productObj);
+        _unitofWork.Commit();
 
+        var remainingProductsAssociatedWithListing = _unitofWork.Product.List(p => p.ListingId == AssociatedListing.Id);
+        if (remainingProductsAssociatedWithListing == null)
+        {
+            //There are no more products associated with the listing, remove the listing
+            _unitofWork.Listing.Delete(AssociatedListing);
+            _unitofWork.Commit();
+        }
+        await ClosedProductView.InvokeAsync(false);
+    }
 }

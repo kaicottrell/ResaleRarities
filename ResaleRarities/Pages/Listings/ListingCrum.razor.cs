@@ -38,6 +38,7 @@ namespace ResaleRarities.Pages.Listings
         private List<OfferProduct> OfferedProducts { get; set; } = new List<OfferProduct>();
 
         private bool IsDataLoaded { get; set; } = false; // Flag to track data loading
+        private bool IsProcessingOffer { get; set; } = false;
 
 
 
@@ -58,7 +59,7 @@ namespace ResaleRarities.Pages.Listings
 
             if (!string.IsNullOrEmpty(ListingId) && _unitofWork != null)
             {
-                Listing = _unitofWork.Listing.Get(listing => listing.Id == ListingId);
+                Listing = _unitofWork.Listing.Get(listing => listing.Id == ListingId, includes: "ListingStatus");
             }
             else if (_unitofWork != null && user != null)
             {
@@ -124,13 +125,15 @@ namespace ResaleRarities.Pages.Listings
 
                 if (Listing.ListingStatus.StatusDescription == SD.LSProcessingAutomatedOffer)
                 {
+                    IsProcessingOffer = true;
+                    StateHasChanged();
                     ShowOffer = true;
                     try
                     {
                         double totalOffer = 0;
                         foreach (var Product in Products)
                         {
-                            var offerProduct = await OfferService.GetOfferWithReasonTest(Product);
+                            var offerProduct = await OfferService.GetOfferWithReason(Product);
                             double offer = offerProduct.OfferAmount;
                             OfferedProducts.Add(offerProduct);
                             totalOffer += offer;
@@ -149,6 +152,7 @@ namespace ResaleRarities.Pages.Listings
 
                 _unitofWork.Listing.Update(Listing);
                 _unitofWork.Commit();
+                IsProcessingOffer = false;
                 StateHasChanged();
                 // Navigation.NavigateTo("/");
             }

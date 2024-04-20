@@ -18,7 +18,8 @@ namespace ResaleRarities.Pages.Services
         public AutomatedOfferService(IConfiguration config)
         {
             _config = config;
-            _openAiApi = new OpenAIAPI("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"); 
+            string? openAIKey = _config["OpenAI:ChatKey"];
+            _openAiApi = new OpenAIAPI(openAIKey); 
         }
 
         Product ProductObj = new Product();
@@ -38,7 +39,7 @@ namespace ResaleRarities.Pages.Services
             chat.Model = Model.GPT4;
 
             /// give instruction as System
-            chat.AppendSystemMessage("You are an automated bidding system. You bid 60% of what the price of the item would be based on the description, name, condition, and category."+
+            chat.AppendSystemMessage("You are an automated bidding system. You bid a realistic bid of what the price of the item would be based on the description, name, condition, and category. Ensure that your bid is extremly realistic and makes the seller want to sell their product"+
                "You start with the double value bid and then give your reasoning. Utilize this format: Bid:BID_VARIABLE: STRING_REASONING. Where the underscore words are the corresponding variables");
 
             // give a few examples as user and assistant
@@ -68,8 +69,9 @@ namespace ResaleRarities.Pages.Services
             double offer = 0.0;
             string reason = "";
 
+            string originalReason = response;
             // Define the regular expression pattern to match the offer amount
-            string offerPattern = @"Bid: \$([\d.]+)";
+            string offerPattern = @"Bid: \$([\d,.]+)";
 
             // Use regular expression to match the offer amount
             Match offerMatch = Regex.Match(response, offerPattern);
@@ -78,20 +80,22 @@ namespace ResaleRarities.Pages.Services
             if (offerMatch.Success)
             {
                 // Extract and parse the offer amount
-                if (double.TryParse(offerMatch.Groups[1].Value, out offer))
+                string offerString = offerMatch.Groups[1].Value.Replace(",", ""); // Remove commas if present
+                if (double.TryParse(offerString, out offer))
                 {
                     // Extract the reason as the substring after the offer
                     int reasonIndex = offerMatch.Index + offerMatch.Length;
                     reason = response.Substring(reasonIndex).Trim();
 
                     // Return the offer product
-                    return new OfferProduct(ProductObj.Id, offer, reason);
+                    return new OfferProduct(ProductObj.Id, offer, originalReason);
                 }
             }
 
             // If no offer is found, throw an exception
             throw new Exception("Unable to extract offer and reason from completion response.");
         }
+
 
 
     }

@@ -42,12 +42,17 @@ namespace ResaleRarities
                    .AddUserSecrets<MauiProgram>()
                    .Build();
 
-                builder.Services.AddSingleton(config);
+                // Read the connection string directly from appsettings.json
+                string? connectionString = config["ConnectionStrings:Default"];
+
+                if (connectionString == null)
+                {
+                    throw new Exception("Connection String not found");
+                }
 
                 builder.Services.AddMauiBlazorWebView();
 
                 // Read the connection string directly from appsettings.json
-                string? connectionString = "Data Source=resalerare.database.windows.net,1433;Initial Catalog=ResaleRarityV2;User Id=resalerarityadmin;Password=rrforweber7!;Encrypt=True;MultipleActiveResultSets=true";
 
                 if (connectionString == null)
                 {
@@ -62,6 +67,7 @@ namespace ResaleRarities
                         errorNumbersToAdd: null)));
 
                 builder.Services.AddScoped<AuthenticationStateProvider, CustomAuthenticationStateProvider>();
+                builder.Services.AddSingleton<IConfiguration>(config);
                 builder.Services.AddAuthorizationCore();
                 builder.Services.AddHttpClient();
                 builder.Services.AddMauiBlazorWebView();

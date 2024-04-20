@@ -5,6 +5,9 @@
 @using Infrastructure.Utility
 @using ResaleRarities.Pages.Products
 @inject Radzen.NotificationService NotificationService
+@using Microsoft.AspNetCore.Components.Authorization
+@using ResaleRarities.Authentication
+@inject AuthenticationStateProvider authStateProvider
 @using Radzen
 
 @inject IJSRuntime JsRuntime
@@ -21,9 +24,16 @@
 }
 else if (!IsProductBeingViewed)
 {
-    <div class="text-center">
-        <RadzenText TextStyle="TextStyle.H5">Find Rarities</RadzenText>
-    </div>
+
+    <AuthorizeView Roles="admin">
+        <Authorized>
+            <RadzenText TextStyle="TextStyle.H5">Manage Rarities</RadzenText>
+        </Authorized>
+        <NotAuthorized>
+            <RadzenText TextStyle="TextStyle.H5">Find Rarities</RadzenText>
+        </NotAuthorized>
+    </AuthorizeView>
+  
     <div id="searchAccordion">
         <div class="accordion custom-accordion" id="accordionSearchFilters">
             <div class="accordion-item">
@@ -37,7 +47,7 @@ else if (!IsProductBeingViewed)
                         <div class="row">
 
                             <div class="col-12 col-md-1 d-flex align-items-center justify-content-md-end">
- 
+
                                 <RadzenLabel Text="Category" Component="CategoryDropdown" Style="margin-right: 8px; vertical-align: middle;" />
                             </div>
                             <div class="col-12 col-md-3 d-flex align-items-center">
@@ -67,36 +77,34 @@ else if (!IsProductBeingViewed)
 
     @if (FilteredProductListings.Any())
     {
-            <!-- Listing Cards Section -->
-            <div class="row justify-content-center">
-                <!-- Loop through filtered product listings -->
-                @foreach (var product in FilteredProductListings)
-                {
-                    <!-- Display individual product card -->
-                    <div class="col-md-3 col-12 d-flex align-items-stretch">
-                        <div class="listing-card enlarge-animation w-100" @onclick="()=> ViewProduct(product.Id)">
-                            <!-- Display product image -->
-                            @{
-                                var frontImage = _unitofWork.Image.Get(image => image.ProductId == product.Id);
-                                if (frontImage != null)
-                                {
-                                    <div class="justify-content-center d-flex">
-                                        <img src="@($"data:image;base64,{Convert.ToBase64String(frontImage.ImageData)}")" alt="Product Picture" class="listing-card-image" style="width: 200px; height: 200px;" />
-                                    </div>
-                                }
-                                else
-                                {
-                                    <img src="https://via.placeholder.com/150" alt="Placeholder Image" class="listing-card-image" />
-                                }
+        <!-- Listing Cards Section -->
+        <div class="row d-flex justify-content-center">
+            <!-- Loop through filtered product listings -->
+            @foreach (var product in FilteredProductListings)
+            {
+                <!-- Display individual product card -->
+                    <div class=" col-lg-3 col-md-4 col-12 align-items-stretch listing-card enlarge-animation" @onclick="()=> ViewProduct(product.Id)">
+                        <!-- Display product image -->
+                        @{
+                            var frontImage = _unitofWork.Image.Get(image => image.ProductId == product.Id);
+                            if (frontImage != null)
+                            {
+                                <div class="justify-content-center d-flex">
+                                    <img src="@($"data:image;base64,{Convert.ToBase64String(frontImage.ImageData)}")" alt="Product Picture" class="listing-card-image" style="width: 200px; height: 200px;" />
+                                </div>
                             }
-                            <!-- Display product details -->
-                            <div class="text-center">@product.Name</div>
-                            <p>Condition: @(product.Condition?.Type ?? "Not Listed")</p>
-                            <p>Category: @(product.Category?.Name ?? "Not Listed")</p>
-                        </div>
-                    </div>
-                }
-            </div>
+                            else
+                            {
+                                <img src="https://via.placeholder.com/150" alt="Placeholder Image" class="listing-card-image" />
+                            }
+                        }
+                        <!-- Display product details -->
+                        <div class="text-center">@product.Name</div>
+                        <p>Condition: @(product.Condition?.Type ?? "Not Listed")</p>
+                        <p>Category: @(product.Category?.Name ?? "Not Listed")</p>
+                </div>
+            }
+        </div>
     }
     else
     {
@@ -153,7 +161,7 @@ else
     private void HandleCloseView()
     {
         IsLoading = true;
-        StateHasChanged();
+        FilteredProductListings = _unitofWork!.Product.List(pl => pl.Listing.ListingStatus.StatusDescription == SD.LSPostedForBid, includes: "Listing.ListingStatus,Category,Condition");
         IsProductBeingViewed = false;
         ViewedProduct = new Product();
         IsLoading = false;
